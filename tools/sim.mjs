@@ -5,8 +5,11 @@
 import { readFileSync } from 'node:fs';
 import * as E from '../src/economy.js';
 
-const cfg = JSON.parse(readFileSync(new URL('../config/game.json', import.meta.url)));
-const s = E.createState(cfg);
+const base = JSON.parse(readFileSync(new URL('../config/game.json', import.meta.url)));
+const cfg = E.streetConfig(base, 'main');
+const g = E.createGlobal(base);
+const s = E.createStreet();
+const BUILDERS = base.builders.count;
 
 const LAWN_TUFTS = 99;           // keep in sync with the lawn size in src/scene/grass.js
 const HITS_PER_SECOND = 5;       // tuft hits per second while swiping
@@ -21,11 +24,16 @@ const timeline = [];
 let hookSeen = null, near = null;
 
 const fmt = (t) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
-const earn = (v) => { s.cash += v; s.earned += v; };
+const earn = (v) => { g.cash += v; g.earned += v; };
+let vipT = base.vip.firstAfterSeconds, litterBank = 0;
 
 function tryBuy() {
   const options = [];
-  for (const p of E.availableProjects(cfg, s)) if (p.type !== 'task' && !E.isBuilding(s, 'project', p.id)) options.push({ kind: 'project', item: p });
+  for (const p of E.availableProjects(cfg, s)) {
+    if (p.type === 'task' || E.isBuilding(s, 'project', p.id)) continue;
+    if (p.buildSeconds > 0 && E.buildersBusy(s) >= BUILDERS) continue;
+    options.push({ kind: 'project', item: p });
+  }
   for (const id of E.shopIds(cfg)) {
     if (!E.shopOpen(cfg, s, id)) continue;
     const u = E.nextUpgrade(cfg, s, id);
@@ -34,24 +42,24 @@ function tryBuy() {
   // SAVER=1: once the hook unlocks, stop upgrading and save for it
   if (process.env.SAVER && E.availableProjects(cfg, s).some((p) => p.hook)) options.splice(0, options.length, ...options.filter((o) => o.item.hook));
   options.sort((a, b) => a.item.cost - b.item.cost);
-  const o = options.find((x) => s.cash >= x.item.cost);
+  const o = options.find((x) => g.cash >= x.item.cost);
   if (!o) return false;
-  s.cash -= o.item.cost;
-  s.builds.push({ kind: o.kind, id: o.item.id, shop: o.shop, endsAt: s.playSeconds + (o.item.buildSeconds || 0) });
-  timeline.push(`${fmt(s.playSeconds)}  buy ${(o.shop ? `${o.shop}:` : '') + o.item.id}`.padEnd(36) + `$${o.item.cost}`);
+  g.cash -= o.item.cost;
+  s.builds.push({ kind: o.kind, id: o.item.id, shop: o.shop, endsAt: g.playSeconds + (o.item.buildSeconds || 0) });
+  timeline.push(`${fmt(g.playSeconds)}  buy ${(o.shop ? `${o.shop}:` : '') + o.item.id}`.padEnd(36) + `$${o.item.cost}`);
   return true;
 }
 
 for (let t = 0; t < 45 * 60; t++) {
-  s.playSeconds = t;
+  g.playSeconds = t;
   for (const b of [...s.builds]) {
     if (b.endsAt <= t) {
       if (b.kind === 'upgrade') s.owned[E.upKey(b.shop, b.id)] = true; else s.done[b.id] = true;
       s.builds.splice(s.builds.indexOf(b), 1);
     }
   }
-  const pressure = E.pressureActive(cfg, s);
-  if (pressure && s.pressureStartedAt === null) { s.pressureStartedAt = t; nextRush = t + cfg.pressure.rush.firstAfterSeconds; timeline.push(`${fmt(t)}  -- pressure starts --`); }
+  const pressure = E.pressureActive(cfg, g, s);
+  if (pressure && g.pressureStartedAt === null) { g.pressureStartedAt = t; nextRush = t + cfg.pressure.rush.firstAfterSeconds; timeline.push(`${fmt(t)}  -- pressure starts --`); }
   if (nextRush !== null && t >= nextRush) { rushUntil = t + cfg.pressure.rush.durationSeconds; nextRush = t + cfg.pressure.rush.everySeconds; }
   const rush = t < rushUntil ? cfg.pressure.rush.customerRate : 1;
 
@@ -68,14 +76,14 @@ for (let t = 0; t < 45 * 60; t++) {
       sh.next -= 1;
       if (sh.next <= 0) {
         if (sh.queue.length < cfg.shops[id].maxQueue) sh.queue.push(0);
-        else if (pressure) s.lost += E.price(cfg, s, id);
+        else if (pressure) g.lost += E.price(cfg, s, id);
         sh.next = E.customerInterval(cfg, s, id, rush);
       }
       sh.queue = sh.queue.map((w) => w + 1);
       if (pressure) {
         const before = sh.queue.length;
         sh.queue = sh.queue.filter((w) => w <= cfg.pressure.patienceSeconds);
-        s.lost += (before - sh.queue.length) * E.price(cfg, s, id);
+        g.lost += (before - sh.queue.length) * E.price(cfg, s, id);
       }
       if (E.autoServe(cfg, s, id)) {
         anyStaff = true;
@@ -100,13 +108,22 @@ for (let t = 0; t < 45 * 60; t++) {
       if (!trashLeft) s.done.trash = true;
     }
     earn(E.passivePerSecond(cfg, s));
+    // VIPs (the player catches ~70%) and litter
+    vipT -= 1;
+    if (vipT <= 0) {
+      const open = E.shopIds(cfg).filter((id) => E.shopOpen(cfg, s, id));
+      if (Math.random() < 0.7) earn(E.price(cfg, s, open[Math.floor(Math.random() * open.length)]) * base.vip.multiplier);
+      vipT = (base.vip.everySeconds[0] + base.vip.everySeconds[1]) / 2;
+    }
+    litterBank += (base.litter.reward / base.litter.everySeconds) * 0.6;
+    if (litterBank >= 1) { earn(Math.floor(litterBank)); litterBank -= Math.floor(litterBank); }
   }
   while (tryBuy());
   const hook = E.availableProjects(cfg, s).find((p) => p.hook);
   if (hook && hookSeen === null) { hookSeen = t; timeline.push(`${fmt(t)}  ** ${hook.id} unlocks ($${hook.cost}) **`); }
-  if (hook && near === null && s.cash >= hook.cost - 280) { near = t; timeline.push(`${fmt(t)}  ** $${Math.floor(s.cash)} of $${hook.cost} **`); }
+  if (hook && near === null && g.cash >= hook.cost - 280) { near = t; timeline.push(`${fmt(t)}  ** $${Math.floor(g.cash)} of $${hook.cost} **`); }
   if (s.done.bakery) break;
 }
 
 console.log(timeline.join('\n'));
-console.log(`\nlost to impatient customers: $${Math.floor(s.lost)}   income from staff: $${E.incomePerSecond(cfg, s).toFixed(1)}/s`);
+console.log(`\nlost to impatient customers: $${Math.floor(g.lost)}   income from staff: $${E.incomePerSecond(cfg, s).toFixed(1)}/s`);

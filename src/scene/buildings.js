@@ -8,7 +8,14 @@ export const STYLES = {
   cafe: { x: 0, sign: 'CAFÉ', h: 2.7, roof: 'flat', roofColor: '#ead9bd', wall: '#fff2d4', trim: '#14a394', awnA: '#ff4f3a', awnB: '#fff6e6', signBg: '#0f8a7e', signFg: '#fff6e6', door: '#14a394' },
   bakery: { x: 2.7, sign: 'BAKERY', h: 2.55, roof: 'gable', wall: '#ffe07a', trim: '#b5562a', awnA: '#ff9a1f', awnB: '#fffaea', signBg: '#a8481f', signFg: '#fff4d6', door: '#b5562a', roofColor: '#e8553a' },
   boutique: { x: 5.4, sign: 'BOUTIQUE', h: 2.8, roof: 'flat', roofColor: '#ddd0ff', wall: '#dccbff', trim: '#6a45e0', awnA: '#9b6bff', awnB: '#ffffff', signBg: '#5634c4', signFg: '#ffffff', door: '#6a45e0' },
+  // Elm Street
+  icecream: { sign: 'ICE CREAM', h: 2.4, roof: 'flat', roofColor: '#ffd6e8', wall: '#c8f1ff', trim: '#ff5fa2', awnA: '#5cc8ff', awnB: '#ffffff', signBg: '#ff5fa2', signFg: '#ffffff', door: '#ff5fa2' },
+  bistro: { sign: 'BISTRO', h: 2.75, roof: 'gable', wall: '#ffe2c4', trim: '#c63a2b', awnA: '#2e9d4f', awnB: '#fff8ee', signBg: '#1f7a3d', signFg: '#fff8ee', door: '#c63a2b', roofColor: '#9c3a2a' },
+  bookshop: { sign: 'BOOKS', h: 2.6, roof: 'gable', wall: '#e6f2d4', trim: '#2c4f9e', awnA: '#2c4f9e', awnB: '#f8e9c8', signBg: '#24418a', signFg: '#f8e9c8', door: '#2c4f9e', roofColor: '#3f63b8' },
+  arcade: { sign: 'ARCADE', h: 2.8, roof: 'flat', roofColor: '#3a2d63', wall: '#3d2f6e', trim: '#ff3fd6', awnA: '#ff3fd6', awnB: '#3ff0ff', signBg: '#1a1233', signFg: '#3ff0ff', door: '#ff3fd6' },
 };
+const DEFAULT_LOTS = ['flowershop', 'cafe', 'bakery', 'boutique'];
+export const lotX = (i) => -2.7 + i * 2.7;
 
 const W = 2.45, D = 2.2, LOT_Z = -6.7;
 export const FACADE_Z = LOT_Z + D / 2; // -5.6
@@ -41,9 +48,9 @@ function gableRoof(parent, color, h) {
 }
 
 export class Building {
-  constructor(scene, id) {
+  constructor(scene, id, x = lotX(DEFAULT_LOTS.indexOf(id))) {
     this.id = id;
-    this.style = STYLES[id];
+    this.style = { ...STYLES[id], x };
     this.state = 'derelict';
     this.root = group(scene, this.style.x, 0, LOT_Z);
     this.body = group(this.root);
@@ -218,6 +225,40 @@ export class Building {
         const m = group(X, x, 0.14, fz - 0.1);
         cyl(m, 0.13, 0.16, 0.5, '#ffffff', { y: 0.25 }, 12);
         sphere(m, 0.08, '#ffffff', { y: 0.85 });
+      }
+    } else if (this.id === 'icecream') {
+      const c = counter('#ffffff', '#ff5fa2', '#5cc8ff');
+      const m = group(c, 0.1, 0.57, -0.02);
+      ['#ffb3d1', '#fff1c1', '#a8e6ff', '#c7f0a8'].forEach((col, i) => {
+        const cone = group(m, -0.18 + i * 0.12, 0, 0);
+        add(cone, geo('cone', () => new THREE.ConeGeometry(0.04, 0.12, 8).rotateX(Math.PI)), mat('#e8a95c'), { y: 0 });
+        sphere(cone, 0.05, col, { y: 0.14 });
+      });
+      this.machine = m;
+      this.decor.tables = this.tables(1.12, ['#5cc8ff', '#ffffff']);
+    } else if (this.id === 'bistro') {
+      const c = counter('#f3e1c6', '#c63a2b', '#2e9d4f');
+      const m = group(c, 0.1, 0.57, -0.02);
+      cyl(m, 0.14, 0.14, 0.02, '#ffffff', { y: 0 }, 16);
+      add(m, geo('cloche', () => new THREE.SphereGeometry(0.12, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2)), mat('#d5dde2'), { y: 0.02, center: true });
+      sphere(m, 0.02, '#c9a227', { y: 0.15 });
+      this.machine = m;
+      this.decor.tables = this.tables(-1.2, ['#2e9d4f', '#fff8ee']);
+    } else if (this.id === 'bookshop') {
+      const c = counter('#e9d6b5', '#2c4f9e', '#f2a03a');
+      const m = group(c, 0.1, 0.57, -0.02);
+      ['#c63a2b', '#2e9d4f', '#f2a03a', '#6a45e0'].forEach((col, i) => box(m, 0.22, 0.05, 0.16, col, { x: (i % 2) * 0.03, y: i * 0.05, ry: i * 0.2 }, 0.01));
+      this.machine = m;
+      const cart = group(this.root, 1.15, 0.12, fz + 0.8);
+      box(cart, 0.6, 0.45, 0.32, '#8a5636', { y: 0.06 }, 0.04);
+      ['#c63a2b', '#2e9d4f', '#f2a03a', '#2c4f9e', '#ff5fa2'].forEach((col, i) => box(cart, 0.08, 0.2, 0.18, col, { x: -0.22 + i * 0.11, y: 0.5 }, 0.01));
+      cart.visible = false;
+      this.decor.cart = cart;
+    } else if (this.id === 'arcade') {
+      for (const [x, col] of [[-0.8, '#ff3fd6'], [-0.3, '#3ff0ff']]) {
+        const m = group(X, x, 0.14, fz - 0.05);
+        box(m, 0.36, 0.8, 0.3, '#1a1233', { y: 0 }, 0.04);
+        box(m, 0.28, 0.22, 0.02, col, { y: 0.5, z: 0.15 }, 0.01).material = glow(col, 0.8);
       }
     }
   }

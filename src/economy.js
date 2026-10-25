@@ -1,23 +1,48 @@
 // Pure economy rules. No DOM, no three.js — shared by the game and tools/sim.mjs.
+//
+// `g`  = global save (wallet, play time, quests, events) shared by every street.
+// `s`  = one street's save (what's built and owned there).
+// `cfg` = the global config merged with the current street's shops and projects (see streetConfig).
 
-export function createState(cfg) {
+export function createGlobal(cfg) {
   return {
-    v: 2,
+    v: 3,
     cash: cfg.startCash,
     earned: 0,
     lost: 0,
     playSeconds: 0,
+    served: 0,
+    tutorial: 'mow',  // mow → serve → done
+    pressureStartedAt: null,
+    stats: { mow: 0, litter: 0, vip: 0, collect: 0, served: 0 },
+    quests: [],
+    questTier: {},
+    currentStreet: cfg.cities[0].streets[0].id,
+    streets: {},
+    events: [],
+  };
+}
+
+export function createStreet() {
+  return {
+    done: {},         // projects finished on this street
     owned: {},        // shop upgrades finished, keyed "shop:upgrade"
-    done: {},         // street projects finished
     choices: {},      // { pavement: 'brick', flowers: 'pink' }
     builds: [],       // [{ kind: 'upgrade'|'project', id, shop?, endsAt, total }]
     trashCleared: [],
-    lawn: null,       // string of 0/1 per tuft: has been restored
-    tutorial: 'mow',  // mow → serve → done
-    served: 0,
-    pressureStartedAt: null,
-    events: [],
+    lawn: null,
+    registers: {},    // shop id → cash waiting to be collected
+    lastSeen: Date.now(),
   };
+}
+
+export function allStreets(cfg) {
+  return cfg.cities.flatMap((c) => (c.streets || []).map((s) => ({ ...s, city: c.id })));
+}
+
+export function streetConfig(cfg, streetId) {
+  const st = allStreets(cfg).find((s) => s.id === streetId) || allStreets(cfg)[0];
+  return { ...cfg, street: st, shops: st.shops, projects: st.projects };
 }
 
 export const upKey = (shop, id) => `${shop}:${id}`;
@@ -60,8 +85,22 @@ export function passivePerSecond(cfg, s) {
   return p;
 }
 
+// What a staffed shop earns per second when nobody is watching.
+export function staffRate(cfg, s, shop) {
+  if (!shopOpen(cfg, s, shop) || !autoServe(cfg, s, shop)) return 0;
+  return price(cfg, s, shop) / Math.max(customerInterval(cfg, s, shop), staffSeconds(cfg, s, shop));
+}
+
+export function registerCap(cfg, s, shop) {
+  return Math.max(cfg.register.minCap, Math.round(staffRate(cfg, s, shop) * cfg.register.capSeconds));
+}
+
 export function isBuilding(s, kind, id, shop) {
   return s.builds.some((b) => b.kind === kind && b.id === id && (!shop || b.shop === shop));
+}
+
+export function buildersBusy(s) {
+  return s.builds.filter((b) => b.kind === 'project').length;
 }
 
 // Every project whose requirements are met and that isn't finished yet — several can be open at once.
@@ -73,25 +112,22 @@ export function nextUpgrade(cfg, s, shop) {
   return cfg.shops[shop].upgrades.find((u) => !s.owned[upKey(shop, u.id)]) || null;
 }
 
-// Income from staffed shops and passive sources, per second (manual serving not included).
+// Staffed and passive income for one street, per second.
 export function incomePerSecond(cfg, s) {
   let r = passivePerSecond(cfg, s);
-  for (const id of shopIds(cfg)) {
-    if (shopOpen(cfg, s, id) && autoServe(cfg, s, id)) {
-      r += price(cfg, s, id) / Math.max(customerInterval(cfg, s, id), staffSeconds(cfg, s, id));
-    }
-  }
+  for (const id of shopIds(cfg)) r += staffRate(cfg, s, id);
   return r;
 }
 
-// The pinch point: pressure and paid offers only switch on once the player is hooked.
-export function pressureActive(cfg, s) {
+// The pinch point: once it has started it stays on, on every street.
+export function pressureActive(cfg, g, s) {
+  if (g.pressureStartedAt !== null) return true;
   const p = cfg.pressure;
   if (!p) return false;
-  return s.playSeconds >= p.startsAfterSeconds && (!p.startsAfterProject || !!s.done[p.startsAfterProject]);
+  return g.playSeconds >= p.startsAfterSeconds && (!p.startsAfterProject || !!s.done[p.startsAfterProject]);
 }
 
-export function log(s, type, data = {}) {
-  s.events.push({ t: Math.round(s.playSeconds * 10) / 10, type, ...data });
-  if (s.events.length > 500) s.events.shift();
+export function log(g, type, data = {}) {
+  g.events.push({ t: Math.round(g.playSeconds * 10) / 10, type, ...data });
+  if (g.events.length > 600) g.events.shift();
 }

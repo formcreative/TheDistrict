@@ -186,18 +186,26 @@ function deadTree(parent, x, z) {
   return g;
 }
 
-function lushTree(parent, x, z, scale = 1) {
+// Leaf colours per street theme: [main, light, dark, highlight]
+const LEAVES = {
+  traditional: ['#3fbf4a', '#5ad35a', '#2fae45', '#8ff07a'],
+  autumn: ['#ff8a2b', '#ffb443', '#e85d2a', '#ffd36b'],
+};
+
+function lushTree(parent, x, z, scale = 1, theme = 'traditional') {
+  const L = LEAVES[theme] || LEAVES.traditional;
   const g = group(parent, x, 0.05, z);
   cyl(g, 0.08 * scale, 0.12 * scale, 1.0 * scale, '#8a6747', {}, 8);
-  sphere(g, 0.55 * scale, '#3fbf4a', { y: 1.35 * scale });
-  sphere(g, 0.4 * scale, '#5ad35a', { x: -0.3 * scale, y: 1.15 * scale, z: 0.2 * scale });
-  sphere(g, 0.38 * scale, '#2fae45', { x: 0.32 * scale, y: 1.2 * scale, z: -0.1 * scale });
-  sphere(g, 0.18 * scale, '#8ff07a', { x: -0.18 * scale, y: 1.62 * scale, z: 0.3 * scale });
+  sphere(g, 0.55 * scale, L[0], { y: 1.35 * scale });
+  sphere(g, 0.4 * scale, L[1], { x: -0.3 * scale, y: 1.15 * scale, z: 0.2 * scale });
+  sphere(g, 0.38 * scale, L[2], { x: 0.32 * scale, y: 1.2 * scale, z: -0.1 * scale });
+  sphere(g, 0.18 * scale, L[3], { x: -0.18 * scale, y: 1.62 * scale, z: 0.3 * scale });
   return g;
 }
 
 export class Street {
-  constructor(scene) {
+  constructor(scene, theme = 'traditional') {
+    this.theme = theme;
     this.root = group(scene);
     this.tapTargets = [];
     this.trash = [];
@@ -224,7 +232,8 @@ export class Street {
       const x = -16 + i * 1.3 + (r() - 0.5) * 0.6, z = -10.2 - r() * 2.4, s = 0.75 + r() * 0.5;
       const t = group(R, x, 0, z);
       cyl(t, 0.08 * s, 0.11 * s, 0.9 * s, '#8a6e55', {}, 6);
-      sphere(t, 0.7 * s, r() < 0.5 ? '#46c04f' : '#6fd65a', { y: 1.4 * s }, 1, 1.1, 1);
+      const leaves = LEAVES[this.theme] || LEAVES.traditional;
+      sphere(t, 0.7 * s, r() < 0.5 ? leaves[0] : leaves[1], { y: 1.4 * s }, 1, 1.1, 1);
     }
     for (const [x, z, s, c] of [[-8, -17, 6, '#9fe08a'], [2, -18.5, 7, '#b4ea9c'], [11, -16, 5.5, '#92d97c']]) {
       sphere(R, 1, c, { x, y: -2.2, z }, s, s * 0.42, s * 0.5).castShadow = false;
@@ -266,7 +275,7 @@ export class Street {
       }
       const lush = group(g);
       lush.visible = false;
-      lushTree(lush, 0, -0.1, 0.95);
+      lushTree(lush, 0, -0.1, 0.95, this.theme);
       return { g, dead, lush, b };
     });
     // broken bench

@@ -96,7 +96,9 @@ export class UI {
   }
 
   // ---- world-anchored widgets ----
-  anchor(id, html, getWorld, { onTap, cls = '', offsetY = 0 } = {}) {
+  // `vars` are CSS custom properties that change every frame (progress rings); setting them
+  // separately keeps the HTML stable so entrance animations don't restart.
+  anchor(id, html, getWorld, { onTap, cls = '', offsetY = 0, vars } = {}) {
     let a = this.anchors.get(id);
     if (!a) {
       const el = document.createElement('div');
@@ -111,6 +113,7 @@ export class UI {
     a.onTap = onTap;
     a.offsetY = offsetY;
     if (a.html !== html) { a.el.innerHTML = html; a.html = html; }
+    if (vars) for (const [k, v] of Object.entries(vars)) a.el.firstElementChild?.style.setProperty(k, v);
     if (a.cls !== cls) { a.el.className = `anchor ${cls}`; a.cls = cls; }
     a.seen = true;
     return a.el;

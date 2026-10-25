@@ -21,6 +21,24 @@ There's no build step and nothing to install for the web version. Three.js and t
 5. **Run several shops at once**: the bottom row shows every opportunity you can take on right now (Flower Shop, New sidewalk, trash…), not one at a time. Each shop has its own customers and its own upgrades (green arrow above it). That spreads your money and your attention.
 6. **Restore the street**: sidewalk (*choose cobblestone, limestone or brick*), landscaping (*choose pink, blue or white*), streetlights, then the glowing **bakery**.
 
+## Something to do while you wait
+
+Builds take real time (minutes, longer as the street grows), and you get **one builder**, so only one street project at a time. The timer blocks progress, never play. While something builds:
+
+- **Registers:** staff don't pay you directly. Their sales pile up in a register over the shop (green badge). It stops filling when it's full and turns red, so tap to empty it. Staff on other streets, or while the app is closed, keep filling their registers up to the cap ("Welcome back, your staff made $83").
+- **VIP customers** with a gold star bubble show up every minute or so, pay 5×, and only *you* can serve them. Staff ignore them, and they leave if you're too slow.
+- **Litter** keeps blowing onto the sidewalks and park. Tap it for a few dollars.
+- **Goals** (clipboard, top left): three goals at a time, such as "Serve 15 customers", "Empty a register 4 times" or "Serve 2 VIP customers", each paying a cash reward. Each claimed goal comes back harder.
+- **Serve by hand:** sales you make yourself go straight to your wallet, so active play always beats watching.
+
+**Speeding up a timer:** tap the timer (or the tile). **Watch ad · −2 min** is always available. In this prototype a 5-second placeholder stands in for a rewarded video ad. **Finish now · $0.99** appears only once the pinch point has started.
+
+## Streets and cities
+
+Buying the bakery unlocks **Elm Street** ($4,000), a second street down the road with autumn trees and its own shops (Ice Cream, Bistro, Bookshop, and an Arcade lot for later). Open the **map** (top left) to travel between streets. Money is shared, and every street keeps earning in its registers while you're elsewhere.
+
+The map also shows **Neo City** (futuristic) and **Sunny Ranch** as locked cities, so players see where the game is going. Each street and city is defined in `config/game.json` under `cities`. A new street only needs config, plus a building style for any new shop type in `src/scene/buildings.js`.
+
 ## The pinch point (where $0.99 comes in)
 
 The opening stays generous on purpose: no impatient customers, no timers worth skipping, no paid offers. Once the player is **both** 6 minutes in **and** has opened the flower shop, the street gets busy:
@@ -39,13 +57,13 @@ Open **Settings → Playtest stats** after a session to see when pressure starte
 
 ## Tuning without rebuilding
 
-Every price, reward, timer and rate lives in [`config/game.json`](config/game.json). Edit it and reload.
+Every price, reward, timer and rate lives in [`config/game.json`](config/game.json): streets, shops, upgrades, builders, register size, VIPs, litter, goals, ads, pressure and offers. Edit it and reload.
 
 ```sh
 npm run sim        # simulates a typical player and prints when each purchase happens
 ```
 
-With the current config, a player who keeps buying every upgrade unlocks the bakery at about 12½ minutes and reaches $5,000 at about 21. A player who starts saving once the bakery glows (`SAVER=1 npm run sim`) has $4,720 at about 17 minutes. Impatient customers cost them $400–1,500 along the way, depending on how much staff they hired.
+With the current config and **no** timer skips, the bakery unlocks at about 22 minutes and is bought at about 24, because street projects now queue behind a single builder. Every ad watched pulls that in by 2 minutes, so the real number depends on how often players skip. That's exactly what the playtest stats now record.
 
 ## Code map
 

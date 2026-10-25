@@ -1,4 +1,4 @@
-const KEY = 'streetstory.save.v2';
+const KEY = 'streetstory.save.v3';
 
 export function load() {
   try {

@@ -52,6 +52,14 @@ export class Person {
     } else if (type === 'bouquet') {
       add(h, geo('wrap', () => new THREE.ConeGeometry(0.07, 0.18, 8).rotateX(Math.PI)), mat('#fff3d6'), { y: -0.02 });
       for (const [x, z, c] of [[0, 0, '#ff7eb9'], [0.05, 0.02, '#ffd23f'], [-0.05, 0.02, '#ff5a5a'], [0, -0.04, '#ffffff']]) sphere(h, 0.045, c, { x, y: 0.2, z });
+    } else if (type === 'cone') {
+      add(h, geo('hcone', () => new THREE.ConeGeometry(0.045, 0.13, 8).rotateX(Math.PI)), mat('#e8a95c'), { y: -0.02 });
+      sphere(h, 0.055, ['#ffb3d1', '#fff1c1', '#a8e6ff'][Math.floor(Math.random() * 3)], { y: 0.12 });
+    } else if (type === 'book') {
+      box(h, 0.14, 0.18, 0.04, ['#c63a2b', '#2e9d4f', '#2c4f9e'][Math.floor(Math.random() * 3)], { y: -0.06 }, 0.01);
+    } else if (type === 'box') {
+      box(h, 0.16, 0.08, 0.14, '#fff8ee', { y: -0.02 }, 0.02);
+      box(h, 0.16, 0.02, 0.14, '#c63a2b', { y: 0.06 }, 0.01);
     } else if (type === 'bag') {
       box(h, 0.12, 0.14, 0.08, '#e9d2a8', { y: -0.04 }, 0.02);
       box(h, 0.12, 0.03, 0.08, '#c4623e', { y: 0.06 }, 0.01);
