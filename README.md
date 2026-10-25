@@ -1,49 +1,59 @@
-# The District
+# Street Story
 
-A street-restoration idle game. You start on a run-down street and bring it back to life one swipe at a time.
+*Working title.* A mobile-first 3D street-restoration game. You start on a run-down street with $0 and bring it back to life: mow the lawn, buy the abandoned café, sell espresso, upgrade, and restore the block one project at a time.
 
-## Build 1: first playable
+Prototype #1 ends on a hook. After about 10–15 minutes the street has visibly changed, the café earns money on its own, and the glowing **Bakery — $5,000** is just out of reach.
 
-Run-down street → swipe to cut overgrown grass → coins pop out → cash counter climbs → café unlocks at $100 → tap **BUY** → café transforms and opens → first customers arrive.
-
-## Run it
-
-No build step and no dependencies. Serve the folder and open it on a phone-sized viewport:
+## Play it
 
 ```sh
-python3 -m http.server 8000
-# open http://localhost:8000
+npm start          # http://localhost:8000, plus a LAN address for your phone
 ```
 
-ES modules need a server, so opening `index.html` straight from the filesystem won't work.
+There's no build step and nothing to install for the web version. Three.js and the font are vendored in `vendor/`, so it also works offline. Add `?debug=1` to the URL for cash and speed buttons.
 
-## Where things live
+## The loop
 
-| File | What it does |
+1. **Mow**: swipe across the lawn. A mower follows your finger, grass flies, coins pop out. The lawn pays about $100.
+2. **Buy the café** ($100): boards fly off, the sign flickers on, customers arrive.
+3. **Sell espresso**: a customer shows an order bubble. Tap the café to brew, then tap again to serve: $5.
+4. **Upgrade the café** (green arrow above it): Espresso Machine II → Barista (automatic service) → Outdoor Seating → Latte Bar → Second Barista.
+5. **Restore the street**, one project at a time on the bottom card: pick up trash → new sidewalk (*choose cobblestone, limestone or brick*) → flower shop → landscaping (*choose pink, blue or white flowers*) → streetlights → **bakery** → repave the road → boutique.
+
+The first upgrade is instant. Later ones take real time and can be skipped for "$0.99".
+
+## Monetization in prototype #1: fake doors
+
+No payments exist in this build. The **$0.99 skip** and **+$1,000 for $0.99** buttons look real. A tap records the intent, reveals that nothing was charged, and grants the reward for free. This measures what matters, which is whether players want the bakery badly enough to pay. Set `monetization.mode` to `"off"` in the config to hide these buttons.
+
+Open **Settings → Playtest stats** after a session to see when the bakery appeared, how long the player waited, and how many $0.99 taps happened. **Copy full log** gives the raw event list.
+
+## Tuning without rebuilding
+
+Every price, reward, timer and rate lives in [`config/game.json`](config/game.json). Edit it and reload.
+
+```sh
+npm run sim        # simulates a typical player and prints when each purchase happens
+```
+
+The current config puts the bakery card at about 11½ minutes, $4,729 of $5,000 at about 14¾ minutes, and the purchase at about 15 minutes.
+
+## Code map
+
+| Path | What it does |
 | --- | --- |
-| `src/config.js` | Economy and layout. **Pacing knobs live here** (`CAFE_PRICE`, `GRASS.*`). |
-| `src/main.js` | Game loop, input (swipe and tap), purchase flow. |
-| `src/grass.js` | Tufts, swipe cutting, regrowth, mowed-lawn patches. |
-| `src/coins.js` | Coin pop/bounce physics and the fly-to-counter arc. |
-| `src/cafe.js` | Café in derelict and open states, plus the buy transformation. |
-| `src/customers.js` | Customers walk in, go inside, leave with a coffee. |
-| `src/fx.js` | Clippings, dust, confetti, sparkles, swipe trail, the "CAFÉ OPEN!" banner. |
-| `src/hud.js` | Cash pill, BUY button, mute button, tutorial hand. |
-| `src/world.js` | Street backdrop: sky, neighbors, path, sidewalk, road, verge. |
-| `artifact.html` | Same game, wrapped for publishing as a claude.ai artifact. |
+| `config/game.json` | Economy and content data |
+| `src/economy.js` | Pure pricing rules, shared by the game and the simulator |
+| `src/game.js` | Game flow: input, café service, projects, upgrades, builds, fake doors, stats |
+| `src/scene/stage.js` | Renderer, elevated three-quarter camera that fits any phone, lighting |
+| `src/scene/street.js` | Road, sidewalks and the four paving styles, lamps, park beds, trash |
+| `src/scene/buildings.js` | Shops with neglected and restored looks, the restore animation, the hook beam |
+| `src/scene/grass.js` | Instanced grass, cutting, regrowth, mowed-lawn patches |
+| `src/scene/people.js` | Pedestrians, customers, baristas |
+| `src/scene/fx.js`, `mower.js` | Particles, coin pops, the mower |
+| `src/ui/` | HUD, bottom card, world-anchored bubbles, sheets, modals, icons |
+| `tools/` | `sim.mjs` (pacing), `serve.mjs` (local server), `build.mjs` (app bundle) |
 
-All art is drawn in code on a 400×820 logical canvas that scales to the screen. Sound is synthesized with WebAudio, so the game ships with no asset files.
+## Shipping to iOS and Android
 
-## Design rules
-
-- Bright, polished, dimensional, extremely simple.
-- No programmer-looking UI: every control is a drawn game object, never a browser default.
-- Restoration should last. Cut grass grows back as healthy lawn, never as weeds again.
-
-## Next milestones
-
-1. Espresso serving: customers pay when served.
-2. Café upgrades.
-3. Hire the barista.
-4. Passive income.
-5. First street choice: pavement vs. landscaping.
+See [docs/PUBLISHING.md](docs/PUBLISHING.md). In short, the same web build is wrapped with Capacitor (`npm run ios` / `npm run android`).

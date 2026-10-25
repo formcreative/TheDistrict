@@ -1,0 +1,239 @@
+{
+  "_readme": "All economy and content numbers live here. Edit and reload; no rebuild needed. Money is in whole dollars, times in seconds.",
+  "startCash": 0,
+  "grass": {
+    "coinValue": 1,
+    "weedChance": 0.08,
+    "weedCoins": 3,
+    "regrowSeconds": 12,
+    "cutRadius": 0.42
+  },
+  "trash": {
+    "rewardPerPile": 10
+  },
+  "cafe": {
+    "baseCupPrice": 5,
+    "brewSeconds": 0.8,
+    "baristaBrewSeconds": 1.4,
+    "customerIntervalSeconds": 3.6,
+    "maxQueue": 3
+  },
+  "cafeUpgrades": [
+    {
+      "id": "machine2",
+      "title": "Espresso Machine II",
+      "icon": "machine",
+      "cost": 50,
+      "buildSeconds": 0,
+      "effect": {
+        "cupPrice": 8
+      },
+      "effectLabel": "$8 per cup"
+    },
+    {
+      "id": "barista",
+      "title": "Hire a Barista",
+      "icon": "barista",
+      "cost": 150,
+      "buildSeconds": 20,
+      "effect": {
+        "autoServe": true
+      },
+      "effectLabel": "Serves for you"
+    },
+    {
+      "id": "seating",
+      "title": "Outdoor Seating",
+      "icon": "seating",
+      "cost": 300,
+      "buildSeconds": 30,
+      "effect": {
+        "customerRate": 1.5
+      },
+      "effectLabel": "More customers"
+    },
+    {
+      "id": "latte",
+      "title": "Latte Bar",
+      "icon": "latte",
+      "cost": 600,
+      "buildSeconds": 45,
+      "effect": {
+        "cupPrice": 14
+      },
+      "effectLabel": "$14 per cup"
+    },
+    {
+      "id": "barista2",
+      "title": "Second Barista",
+      "icon": "barista",
+      "cost": 1200,
+      "buildSeconds": 60,
+      "effect": {
+        "customerRate": 1.4,
+        "baristaSpeed": 1.6
+      },
+      "effectLabel": "Faster service"
+    }
+  ],
+  "projects": [
+    {
+      "id": "cafe",
+      "type": "building",
+      "building": "cafe",
+      "title": "Café",
+      "icon": "cup",
+      "cost": 100,
+      "buildSeconds": 0
+    },
+    {
+      "id": "trash",
+      "type": "task",
+      "title": "Pick up trash",
+      "icon": "trash",
+      "cost": 0
+    },
+    {
+      "id": "sidewalk",
+      "type": "street",
+      "title": "New sidewalk",
+      "icon": "paving",
+      "cost": 400,
+      "buildSeconds": 20,
+      "choice": "pavement",
+      "effect": {
+        "customerRate": 1.15
+      }
+    },
+    {
+      "id": "flowershop",
+      "type": "building",
+      "building": "flowershop",
+      "title": "Flower Shop",
+      "icon": "flower",
+      "cost": 800,
+      "buildSeconds": 30,
+      "effect": {
+        "passivePerSecond": 7,
+        "customerRate": 1.1
+      }
+    },
+    {
+      "id": "landscaping",
+      "type": "street",
+      "title": "Landscaping",
+      "icon": "tree",
+      "cost": 1000,
+      "buildSeconds": 30,
+      "choice": "flowers",
+      "effect": {
+        "customerRate": 1.15
+      }
+    },
+    {
+      "id": "streetlights",
+      "type": "street",
+      "title": "Streetlights",
+      "icon": "lamp",
+      "cost": 1500,
+      "buildSeconds": 30,
+      "effect": {
+        "customerRate": 1.15,
+        "passivePerSecond": 5
+      }
+    },
+    {
+      "id": "bakery",
+      "type": "building",
+      "building": "bakery",
+      "title": "Bakery",
+      "icon": "croissant",
+      "cost": 5000,
+      "buildSeconds": 0,
+      "hook": true,
+      "effect": {
+        "passivePerSecond": 15,
+        "customerRate": 1.2
+      }
+    },
+    {
+      "id": "repave",
+      "type": "street",
+      "title": "Repave road",
+      "icon": "road",
+      "cost": 6000,
+      "buildSeconds": 60,
+      "effect": {
+        "customerRate": 1.2
+      }
+    },
+    {
+      "id": "boutique",
+      "type": "building",
+      "building": "boutique",
+      "title": "Boutique",
+      "icon": "bag",
+      "cost": 15000,
+      "buildSeconds": 90,
+      "effect": {
+        "passivePerSecond": 30
+      }
+    }
+  ],
+  "choices": {
+    "pavement": {
+      "title": "Choose your pavement",
+      "options": [
+        {
+          "id": "cobblestone",
+          "label": "Cobblestone"
+        },
+        {
+          "id": "limestone",
+          "label": "Limestone"
+        },
+        {
+          "id": "brick",
+          "label": "Brick"
+        }
+      ]
+    },
+    "flowers": {
+      "title": "Choose your flowers",
+      "options": [
+        {
+          "id": "pink",
+          "label": "Pink",
+          "color": "#ff7eb9"
+        },
+        {
+          "id": "blue",
+          "label": "Blue",
+          "color": "#6a9cff"
+        },
+        {
+          "id": "white",
+          "label": "White",
+          "color": "#fffaf2"
+        }
+      ]
+    }
+  },
+  "pedestrians": {
+    "base": 1,
+    "perCompletedProject": 1,
+    "max": 9
+  },
+  "monetization": {
+    "_note": "fake_door = buttons look real, record the tap, never charge, then grant the reward for free.",
+    "mode": "fake_door",
+    "skipPriceLabel": "$0.99",
+    "cashOffer": {
+      "enabled": true,
+      "amount": 1000,
+      "priceLabel": "$0.99",
+      "showWhenCashFraction": 0.6,
+      "onlyForHook": true
+    }
+  }
+}

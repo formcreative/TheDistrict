@@ -1,0 +1,32 @@
+// Chunky flat icons with a dark outline, sized by CSS. viewBox is 64×64.
+const O = 'stroke="#23284a" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"';
+const svg = (body) => `<svg viewBox="0 0 64 64" aria-hidden="true">${body}</svg>`;
+
+export const ICONS = {
+  coin: svg(`<circle cx="32" cy="34" r="24" fill="#c27d0e"/><circle cx="32" cy="30" r="24" fill="#ffc12b" ${O}/><circle cx="32" cy="30" r="16" fill="#ffe070" stroke="#eaa21c" stroke-width="3"/><path d="M36 23c-2-2-9-2-9 2.5S37 29 37 34s-8 4.5-10 2M32 19v4M32 37v4" fill="none" stroke="#d98a10" stroke-width="3.5" stroke-linecap="round"/><ellipse cx="22" cy="17" rx="6" ry="3" fill="#fff" opacity=".8"/>`),
+  cup: svg(`<path d="M14 24h30v14a13 13 0 0 1-13 13h-4a13 13 0 0 1-13-13z" fill="#fff" ${O}/><path d="M44 28h4a7 7 0 0 1 0 14h-5" fill="none" ${O}/><ellipse cx="29" cy="24" rx="15" ry="4" fill="#7a4a2a" ${O}/><path d="M24 8c-3 4 3 6 0 10M33 6c-3 4 3 6 0 10" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>`),
+  machine: svg(`<rect x="12" y="10" width="40" height="38" rx="7" fill="#d5dde2" ${O}/><rect x="10" y="8" width="44" height="10" rx="4" fill="#e0523a" ${O}/><rect x="24" y="24" width="16" height="6" rx="2" fill="#3b3f48"/><path d="M24 38h16v6a5 5 0 0 1-5 5h-6a5 5 0 0 1-5-5z" fill="#fff" ${O}/><rect x="8" y="50" width="48" height="6" rx="3" fill="#8a96a0" ${O}/>`),
+  barista: svg(`<circle cx="32" cy="22" r="13" fill="#f3c39b" ${O}/><path d="M19 20a13 13 0 0 1 26 0c-5-4-21-4-26 0z" fill="#6b4226" ${O}/><path d="M12 58c0-12 9-20 20-20s20 8 20 20z" fill="#2fb5a8" ${O}/><path d="M24 40h16v18H24z" fill="#fff6e8" ${O}/><circle cx="27" cy="23" r="2" fill="#23284a"/><circle cx="37" cy="23" r="2" fill="#23284a"/>`),
+  seating: svg(`<path d="M8 26 32 10l24 16z" fill="#ff6a4a" ${O}/><path d="M32 26v24" ${O}/><ellipse cx="32" cy="38" rx="14" ry="4" fill="#fff" ${O}/><rect x="6" y="40" width="10" height="14" rx="3" fill="#e0a36b" ${O}/><rect x="48" y="40" width="10" height="14" rx="3" fill="#e0a36b" ${O}/>`),
+  latte: svg(`<path d="M16 18h28l-4 36H20z" fill="#fff" ${O}/><path d="M18 30h24l-1.5 12h-21z" fill="#c98146"/><path d="M27 34c3-3 6 0 5 3s-6 2-5-3z" fill="#fff"/><rect x="13" y="12" width="34" height="8" rx="3" fill="#ff6a4a" ${O}/>`),
+  trash: svg(`<path d="M14 52c-4-14 2-26 18-26s22 12 18 26z" fill="#4c5a52" ${O}/><path d="M26 26c0-6 12-6 12 0" fill="none" ${O}/><path d="M24 36c4 2 12 2 16 0" fill="none" stroke="#7f8f86" stroke-width="3" stroke-linecap="round"/><circle cx="50" cy="16" r="6" fill="#ffd23f" ${O}/>`),
+  paving: svg(`<rect x="6" y="14" width="24" height="16" rx="3" fill="#c4573f" ${O}/><rect x="34" y="14" width="24" height="16" rx="3" fill="#d16e52" ${O}/><rect x="18" y="34" width="24" height="16" rx="3" fill="#b84d37" ${O}/><rect x="2" y="34" width="12" height="16" rx="3" fill="#cf6449" ${O}/><rect x="46" y="34" width="16" height="16" rx="3" fill="#c4573f" ${O}/>`),
+  flower: svg(`<path d="M32 36v20" stroke="#3f8a5a" stroke-width="5" stroke-linecap="round"/><path d="M32 48c-8 0-12-6-12-6s8-2 12 6z" fill="#4caa45" ${O}/><g fill="#ff7eb9" ${O}><circle cx="32" cy="14" r="8"/><circle cx="44" cy="24" r="8"/><circle cx="20" cy="24" r="8"/><circle cx="25" cy="37" r="8"/><circle cx="39" cy="37" r="8"/></g><circle cx="32" cy="27" r="6" fill="#ffd23f" ${O}/>`),
+  tree: svg(`<rect x="28" y="36" width="8" height="20" rx="3" fill="#8a6747" ${O}/><circle cx="32" cy="26" r="18" fill="#4fae4a" ${O}/><circle cx="25" cy="20" r="6" fill="#7fd06e"/><circle cx="20" cy="54" r="5" fill="#ff7eb9" ${O}/><circle cx="44" cy="54" r="5" fill="#ff7eb9" ${O}/>`),
+  lamp: svg(`<path d="M32 58V24" stroke="#35554f" stroke-width="6" stroke-linecap="round"/><path d="M22 58h20" ${O}/><circle cx="32" cy="18" r="16" fill="#ffe7a3" opacity=".55"/><rect x="23" y="8" width="18" height="18" rx="5" fill="#ffe7a3" ${O}/><rect x="20" y="5" width="24" height="6" rx="3" fill="#35554f" ${O}/>`),
+  croissant: svg(`<path d="M8 40c4-16 14-26 24-26s20 10 24 26c-6-2-10-1-12 2-3-6-8-8-12-8s-9 2-12 8c-2-3-6-4-12-2z" fill="#f0a94a" ${O}/><path d="M24 22l4 12M40 22l-4 12M32 16v14" stroke="#c97a26" stroke-width="3" stroke-linecap="round"/>`),
+  road: svg(`<path d="M18 6h28l12 52H6z" fill="#4f5462" ${O}/><path d="M32 12v8M32 28v8M32 44v10" stroke="#fbf8ee" stroke-width="4" stroke-linecap="round"/>`),
+  bag: svg(`<path d="M12 22h40l-4 34H16z" fill="#8c78e6" ${O}/><path d="M24 26v-8a8 8 0 0 1 16 0v8" fill="none" ${O}/><path d="M22 34h20" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".6"/>`),
+  clock: svg(`<circle cx="32" cy="32" r="24" fill="#fff" ${O}/><path d="M32 18v14l9 6" fill="none" ${O}/>`),
+  bolt: svg(`<path d="M36 4 12 36h16l-4 24 26-34H34z" fill="#ffd23f" ${O}/>`),
+  lock: svg(`<rect x="12" y="28" width="40" height="28" rx="6" fill="#ffc12b" ${O}/><path d="M20 28v-6a12 12 0 0 1 24 0v6" fill="none" ${O}/><circle cx="32" cy="42" r="4" fill="#23284a"/>`),
+  check: svg(`<circle cx="32" cy="32" r="26" fill="#5ad13a" ${O}/><path d="M20 33l8 8 16-17" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>`),
+  up: svg(`<circle cx="32" cy="32" r="26" fill="#5ad13a" ${O}/><path d="M32 46V20M20 31l12-12 12 12" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>`),
+  gear: svg(`<path d="M32 6l5 7 8-3 2 8 8 2-3 8 7 5-7 5 3 8-8 2-2 8-8-3-5 7-5-7-8 3-2-8-8-2 3-8-7-5 7-5-3-8 8-2 2-8 8 3z" fill="#fff" ${O}/><circle cx="32" cy="32" r="8" fill="#2c3d82" ${O}/>`),
+  sound: svg(`<path d="M10 24h10l14-12v40L20 40H10z" fill="#fff" ${O}/><path d="M42 22a14 14 0 0 1 0 20M48 16a22 22 0 0 1 0 32" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/>`),
+  soundOff: svg(`<path d="M10 24h10l14-12v40L20 40H10z" fill="#fff" ${O}/><path d="M42 24l14 16M56 24 42 40" stroke="#ff6b5a" stroke-width="5" stroke-linecap="round"/>`),
+  hand: svg(`<g stroke="#23284a" stroke-width="5" stroke-linejoin="round"><path d="M22 30V10a5 5 0 0 1 10 0v18l2-1a5 5 0 0 1 8 2l1-1a5 5 0 0 1 8 3v1a5 5 0 0 1 8 3v10c0 10-7 18-18 18h-4c-8 0-13-4-17-10l-8-12a5 5 0 0 1 8-6z" fill="#fff"/></g>`),
+  close: svg(`<circle cx="32" cy="32" r="26" fill="#ff6a4a" ${O}/><path d="M23 23l18 18M41 23 23 41" stroke="#fff" stroke-width="6" stroke-linecap="round"/>`),
+};
+
+export const icon = (name, cls = '') => `<span class="ico ${cls}">${ICONS[name] || ICONS.coin}</span>`;

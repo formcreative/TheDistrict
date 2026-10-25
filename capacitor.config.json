@@ -1,0 +1,12 @@
+{
+  "appId": "com.formcreative.streetstory",
+  "appName": "Street Story",
+  "webDir": "dist",
+  "backgroundColor": "#7cc8ff",
+  "ios": {
+    "contentInset": "never"
+  },
+  "android": {
+    "backgroundColor": "#7cc8ff"
+  }
+}

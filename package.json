@@ -1,0 +1,23 @@
+{
+  "name": "street-story",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Street Story — a mobile-first 3D street-restoration game prototype.",
+  "type": "module",
+  "scripts": {
+    "start": "node tools/serve.mjs",
+    "sim": "node tools/sim.mjs",
+    "build": "node tools/build.mjs",
+    "cap:sync": "npm run build && npx cap sync",
+    "ios": "npm run cap:sync && npx cap open ios",
+    "android": "npm run cap:sync && npx cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.5.3",
+    "@capacitor/core": "8.5.3",
+    "@capacitor/ios": "8.5.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.3"
+  }
+}
