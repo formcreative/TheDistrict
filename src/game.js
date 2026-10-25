@@ -13,6 +13,7 @@ import { group, sphere, cyl, box, geo } from './scene/kit.js';
 import { UI, money, clock, icon } from './ui/ui.js';
 import { ICONS } from './ui/icons.js';
 import { purchase, purchaseMode } from './store.js';
+import { worldMapSVG } from './ui/worldmap.js';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const WALK_Z = -4.3;
@@ -1285,56 +1286,55 @@ export class Game {
     const home = this.root.querySelector('#home');
     const g = this.g;
     const here = this.cityOf(this.streetId);
-    const cards = this.base.cities.map((c, i) => {
-      const unlocked = this.cityUnlocked(i);
-      const art = { traditional: ['cup', 'flower', 'croissant'], futuristic: ['bolt', 'star', 'play'], ranch: ['tree', 'flower', 'star'] }[c.theme] || ['star'];
-      if (!unlocked || c.comingSoon) {
-        const why = !unlocked ? `Finish ${this.base.cities[i - 1].title} to unlock` : 'Coming soon';
-        return `<div class="district d-${c.theme} locked">
-          <div class="d-art">${art.map((a) => icon(a)).join('')}</div>
-          <div class="d-body"><div class="d-title">${c.title}</div><div class="d-sub">${why}</div></div>
-          <span class="d-lock">${icon('lock')}</span>
-        </div>`;
-      }
+    const info = this.base.cities.map((c, i) => {
+      const unlocked = this.cityUnlocked(i) && !c.comingSoon;
       const pr = this.cityProgress(c);
-      const streets = c.streets.map((st) => {
-        const open = !!g.streets[st.id];
-        const cur = st.id === this.streetId;
-        return `<button class="d-street ${cur ? 'here' : ''} ${open ? '' : 'locked'}" ${open ? `data-street="${st.id}"` : 'disabled'}>${open ? '' : icon('lock')}<span>${st.title}</span>${cur ? '<i>You are here</i>' : ''}</button>`;
-      }).join('');
-      return `<div class="district d-${c.theme} ${c.id === here?.id ? 'current' : ''}">
-        <div class="d-art">${art.map((a) => icon(a)).join('')}</div>
-        <div class="d-body">
-          <div class="d-title">${c.title}</div>
-          <div class="bar"><i style="width:${(100 * pr.done) / pr.total}%"></i></div>
-          <div class="d-sub">${Math.round((100 * pr.done) / pr.total)}% restored</div>
-          <div class="d-streets">${streets}</div>
-        </div>
-        <button class="btn btn-green big d-play" data-city="${c.id}">${first ? 'PLAY' : 'ENTER'}</button>
-      </div>`;
+      const why = !this.cityUnlocked(i) ? `Finish ${this.base.cities[i - 1].title} to unlock` : 'Coming soon';
+      return { unlocked, current: c.id === here?.id, progress: pr.total ? Math.round((100 * pr.done) / pr.total) : 0, why };
+    });
+    const streets = (here.streets || []).map((st) => {
+      const open = !!g.streets[st.id];
+      const cur = st.id === this.streetId;
+      return `<button class="d-street ${cur ? 'here' : ''} ${open ? '' : 'locked'}" ${open ? `data-street="${st.id}"` : 'disabled'}>${open ? '' : icon('lock')}<span>${st.title}</span>${cur ? '<i>You are here</i>' : ''}</button>`;
     }).join('');
     home.innerHTML = `
-      <div class="home-inner">
-        <div class="home-logo">Street<br>Story</div>
+      ${worldMapSVG(this.base.cities, info)}
+      <div class="home-top">
+        <div class="home-logo">Street Story</div>
         <div class="home-where">${icon('map')}<span>You are in <b>${here.title} · ${this.cfg.street.title}</b></span></div>
-        <div class="districts">${cards}</div>
+      </div>
+      <div class="home-bottom">
+        <div class="d-streets">${streets}</div>
         ${first ? '' : `<button class="btn-link home-close" data-act="close">Back to ${this.cfg.street.title}</button>`}
       </div>`;
     home.hidden = false;
     requestAnimationFrame(() => home.classList.add('open'));
     const close = () => { home.classList.remove('open'); setTimeout(() => { home.hidden = true; }, 300); };
+    const enterCity = (id) => {
+      const i = this.base.cities.findIndex((c) => c.id === id);
+      const city = this.base.cities[i];
+      audio.unlock();
+      if (!info[i].unlocked) {
+        audio.deny();
+        const el = home.querySelector(`.map-city[data-city="${id}"]`);
+        el.classList.remove('shake'); void el.getBoundingClientRect(); el.classList.add('shake');
+        this.ui.toast(city.title.toUpperCase(), info[i].why);
+        return;
+      }
+      audio.tap();
+      close();
+      const target = city.streets.some((s) => s.id === this.streetId) ? this.streetId : city.streets.find((s) => g.streets[s.id])?.id || city.streets[0].id;
+      if (target !== this.streetId) setTimeout(() => this.travel(target), 200);
+      E.log(g, 'enter_district', { city: id });
+    };
+    home.querySelectorAll('.map-city').forEach((el) => {
+      el.addEventListener('click', () => enterCity(el.dataset.city));
+      el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') enterCity(el.dataset.city); });
+    });
     home.querySelectorAll('[data-street]').forEach((b) => b.addEventListener('click', () => {
       audio.unlock(); audio.tap();
       close();
       if (b.dataset.street !== this.streetId) setTimeout(() => this.travel(b.dataset.street), 200);
-    }));
-    home.querySelectorAll('[data-city]').forEach((b) => b.addEventListener('click', () => {
-      audio.unlock(); audio.tap();
-      const city = this.base.cities.find((c) => c.id === b.dataset.city);
-      close();
-      const target = city.streets.some((s) => s.id === this.streetId) ? this.streetId : city.streets.find((s) => g.streets[s.id])?.id || city.streets[0].id;
-      if (target !== this.streetId) setTimeout(() => this.travel(target), 200);
-      E.log(g, 'enter_district', { city: city.id });
     }));
     home.querySelector('[data-act="close"]')?.addEventListener('click', () => { audio.tap(); close(); });
     this.root.querySelector('#map-btn').classList.remove('hint');

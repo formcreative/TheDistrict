@@ -11,10 +11,18 @@ async function loadConfig() {
   return res.json();
 }
 
+const loader = document.getElementById('loader');
+const t0 = performance.now();
+const progress = (k) => { const bar = loader?.querySelector('i'); if (bar) bar.style.width = `${Math.round(k * 100)}%`; };
+
 async function boot() {
+  progress(0.15);
   const fontReady = document.fonts?.load ? document.fonts.load('40px "Lilita One"').catch(() => {}) : Promise.resolve();
   const [cfg] = await Promise.all([loadConfig(), Promise.race([fontReady, new Promise((r) => setTimeout(r, 1500))])]);
+  progress(0.55);
+  await new Promise((r) => setTimeout(r, 30)); // let the bar paint before the 3D street is built
   const game = new Game(cfg, root, canvas, { debug });
+  progress(0.9);
   window.__game = game;
   if (debug) mountDebug(game);
 
@@ -28,6 +36,9 @@ async function boot() {
   };
   requestAnimationFrame((t) => { last = t; loop(t); });
   root.classList.add('ready');
+  // keep the loading screen up long enough to read, then reveal the map
+  const wait = Math.max(0, 1300 - (performance.now() - t0));
+  setTimeout(() => { progress(1); setTimeout(() => { loader?.classList.add('done'); setTimeout(() => loader?.remove(), 500); }, 350); }, wait);
 }
 
 function mountDebug(game) {
@@ -50,6 +61,7 @@ function mountDebug(game) {
 
 boot().catch((err) => {
   console.error(err);
+  loader?.remove();
   root.querySelector('#boot-error').hidden = false;
   root.querySelector('#boot-error').textContent = `Couldn't start the game. ${err.message}`;
 });
