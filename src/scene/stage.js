@@ -12,6 +12,8 @@ export function shopView(x, level) {
   return { box, center: true };
 }
 export { STREET_VIEW };
+// How far a zoomed-in player can drag: the whole street plus the boutique lot and the park fence.
+const PAN_BOX = new THREE.Box3(new THREE.Vector3(-5.2, 0, -8.6), new THREE.Vector3(6.8, 3.2, 7.6));
 const PITCH = THREE.MathUtils.degToRad(46);
 const YAW = THREE.MathUtils.degToRad(-6);
 const TARGET = new THREE.Vector3(0, 0, -1);
@@ -93,12 +95,61 @@ export class Stage {
 
   setFocus(view, instant = false) {
     this.focus = view;
+    this.fling = null;
     this.goal = this.fit(view);
     if (instant || !this.frame) this.frame = { ...this.goal };
   }
 
+  // Drag the zoomed-in camera around the street. dx/dy are screen pixels.
+  panBy(dxPx, dyPx) {
+    if (!this.goal) return;
+    const u = (this.goal.top - this.goal.bottom) / this.height;
+    const sx = -dxPx * u, sy = dyPx * u;
+    for (const f of [this.goal, this.frame]) { f.left += sx; f.right += sx; f.top += sy; f.bottom += sy; }
+    this.clampPan();
+    this.apply();
+  }
+
+  clampPan() {
+    const b = this.panBounds || (this.panBounds = this.projectBox(PAN_BOX));
+    const g = this.goal, w = g.right - g.left, h = g.top - g.bottom;
+    let dx = 0, dy = 0;
+    if (w >= b.maxX - b.minX) dx = (b.minX + b.maxX) / 2 - (g.left + g.right) / 2;
+    else if (g.left < b.minX) dx = b.minX - g.left;
+    else if (g.right > b.maxX) dx = b.maxX - g.right;
+    if (h >= b.maxY - b.minY) dy = (b.minY + b.maxY) / 2 - (g.top + g.bottom) / 2;
+    else if (g.bottom < b.minY) dy = b.minY - g.bottom;
+    else if (g.top > b.maxY) dy = b.maxY - g.top;
+    for (const f of [this.goal, this.frame]) { f.left += dx; f.right += dx; f.top += dy; f.bottom += dy; }
+  }
+
+  projectBox(box) {
+    this.camera.updateMatrixWorld();
+    const inv = this.camera.matrixWorldInverse;
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    const v = new THREE.Vector3();
+    for (let i = 0; i < 8; i++) {
+      v.set(i & 1 ? box.max.x : box.min.x, i & 2 ? box.max.y : box.min.y, i & 4 ? box.max.z : box.min.z).applyMatrix4(inv);
+      minX = Math.min(minX, v.x); maxX = Math.max(maxX, v.x);
+      minY = Math.min(minY, v.y); maxY = Math.max(maxY, v.y);
+    }
+    return { minX, maxX, minY, maxY };
+  }
+
+  // Centre of the view, as a point on the ground.
+  viewCenterGround() {
+    const r = this.canvas.getBoundingClientRect();
+    return this.groundPoint(r.left + r.width / 2, r.top + (this.uiTop + r.height - this.uiBottom) / 2);
+  }
+
   update(dt) {
     if (!this.goal) return;
+    if (this.fling && !this.dragging) {
+      this.panBy(this.fling.x * dt, this.fling.y * dt);
+      const k = Math.exp(-dt * 5);
+      this.fling.x *= k; this.fling.y *= k;
+      if (Math.hypot(this.fling.x, this.fling.y) < 20) this.fling = null;
+    }
     const k = 1 - Math.exp(-dt * 7);
     let moving = false;
     for (const key of ['left', 'right', 'top', 'bottom']) {

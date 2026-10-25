@@ -196,8 +196,10 @@ export class Game {
         return;
       }
       const gp = this.stage.groundPoint(e.clientX, e.clientY);
-      this.pointer = { id: e.pointerId, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, moved: 0, mowing: false, last: gp };
-      if (gp && this.zoom.level === 0 && this.inLawn(gp)) this.startMow(gp);
+      this.pointer = { id: e.pointerId, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, moved: 0, mowing: false, panning: false, last: gp, t: performance.now(), vx: 0, vy: 0 };
+      this.stage.fling = null;
+      // a drag that starts on the lawn mows; when zoomed in, any other drag moves the camera
+      if (gp && this.inLawn(gp)) this.startMow(gp);
     });
     canvas.addEventListener('pointermove', (e) => {
       if (this.pointers.has(e.pointerId)) this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -212,12 +214,22 @@ export class Game {
       if (!p || p.id !== e.pointerId) return;
       const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
       for (const ev of evs.length ? evs : [e]) {
-        p.moved += Math.hypot(ev.clientX - p.x, ev.clientY - p.y);
+        const dx = ev.clientX - p.x, dy = ev.clientY - p.y;
+        p.moved += Math.hypot(dx, dy);
         p.x = ev.clientX; p.y = ev.clientY;
-        if (this.zoom.level) continue;
+        if (!p.mowing && this.zoom.level && (p.panning || p.moved > 8)) {
+          if (!p.panning) { p.panning = true; this.stage.dragging = true; }
+          this.stage.panBy(dx, dy);
+          this.followView();
+          const now = performance.now(), dtm = Math.max(1, now - p.t);
+          p.vx = p.vx * 0.6 + (dx / dtm) * 1000 * 0.4;
+          p.vy = p.vy * 0.6 + (dy / dtm) * 1000 * 0.4;
+          p.t = now;
+          continue;
+        }
         const gp = this.stage.groundPoint(ev.clientX, ev.clientY);
         if (!gp) continue;
-        if (!p.mowing && p.moved > 10 && this.inLawn(gp)) this.startMow(gp);
+        if (!p.mowing && !this.zoom.level && p.moved > 10 && this.inLawn(gp)) this.startMow(gp);
         if (p.mowing && p.last) {
           const g = this.cfg.grass;
           this.grass.cutSegment(p.last.x, p.last.z, gp.x, gp.z, g.cutRadius, (t, weed) => this.onCut(t, weed), {
@@ -234,14 +246,32 @@ export class Game {
       if (this.pinch) { if (this.pointers.size === 0) this.pinch = null; return; }
       const p = this.pointer;
       if (!p || p.id !== e.pointerId) return;
-      const dx = e.clientX - p.x0, dy = e.clientY - p.y0;
-      if (!p.mowing && this.zoom.level && Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) this.cycleShop(dx < 0 ? 1 : -1);
-      else if (!p.mowing && p.moved < 14) this.tap(e.clientX, e.clientY);
+      if (p.panning) {
+        this.stage.dragging = false;
+        if (performance.now() - p.t < 80 && Math.hypot(p.vx, p.vy) > 150) this.stage.fling = { x: p.vx, y: p.vy };
+        this.followView();
+      } else if (!p.mowing && p.moved < 14) this.tap(e.clientX, e.clientY);
       this.mower.stop();
       this.pointer = null;
     };
     canvas.addEventListener('pointerup', end);
     canvas.addEventListener('pointercancel', end);
+  }
+
+  // After a drag, the shop label and arrows follow whichever open shop is nearest the middle.
+  followView() {
+    const c = this.stage.viewCenterGround();
+    if (!c) return;
+    let best = null, bd = Infinity;
+    for (const id of this.openShops()) {
+      const d = Math.abs(STYLES[id].x - c.x);
+      if (d < bd) { bd = d; best = id; }
+    }
+    const label = this.root.querySelector('#zoom-label');
+    if (best && bd < 1.6 && c.z < -2.5) {
+      this.zoom.shop = best;
+      if (label) label.textContent = this.cfg.shops[best].title;
+    } else if (label) label.textContent = '';
   }
 
   shopNearScreen(x) {

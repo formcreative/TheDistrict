@@ -153,8 +153,9 @@ button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 @keyframes wiggle { 0%, 90%, 100% { transform: rotate(0); } 93% { transform: rotate(-4deg); } 96% { transform: rotate(4deg); } }
 
 /* ---------- world-anchored widgets ---------- */
-.anchor { position: absolute; left: 0; top: 0; pointer-events: auto; will-change: transform; }
-.anchor > * { transform: translate(-50%, -100%); }
+.anchor { position: absolute; left: 0; top: 0; pointer-events: none; will-change: transform; }
+/* only the visible badge takes taps; the wrapper's untransformed box would otherwise block the canvas */
+.anchor > * { transform: translate(-50%, -100%); pointer-events: auto; }
 .tag {
   display: flex; align-items: center; gap: 6px; padding: 6px 14px 6px 8px; border-radius: 18px; font-size: 20px; white-space: nowrap;
   background: linear-gradient(180deg, #4560b8, var(--navy-d)); border: 3px solid #fff; box-shadow: 0 4px 0 rgba(15,22,60,.4);
@@ -296,7 +297,7 @@ button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 .round-btn.zbtn { position: static; width: 52px; height: 52px; padding: 7px; background: linear-gradient(180deg, #fffdf8, #e9dcc4); border-color: var(--ink); box-shadow: 0 4px 0 rgba(35,40,74,.45); }
 .zbtn.hint { animation: pulse .9s ease-in-out infinite; box-shadow: 0 4px 0 rgba(35,40,74,.45), 0 0 0 6px rgba(255,214,90,.6); }
 #zoom-label { position: absolute; z-index: 21; left: 50%; top: calc(var(--safe-t) + 74px); transform: translateX(-50%); font-size: 22px; padding: 4px 16px; border-radius: 99px; background: rgba(31,45,107,.85); border: 3px solid #fff; pointer-events: none; white-space: nowrap; }
-#app:not(.zoomed) #zoom-label { display: none; }
+#app:not(.zoomed) #zoom-label, #zoom-label:empty { display: none; }
 .round-btn.side-btn { top: 50%; width: 46px; height: 46px; padding: 9px; transform: translateY(-50%); }
 #shop-prev { left: max(10px, var(--safe-l)); right: auto; }
 #shop-next { right: max(10px, var(--safe-r)); }

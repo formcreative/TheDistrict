@@ -17,7 +17,7 @@ There's no build step and nothing to install for the web version. Three.js and t
 1. **Mow**: swipe across the lawn. Overgrown tufts take two passes, so you swipe back and forth. Grass flies and coins pop out. The lawn pays about $100, enough for the café. Regrown lawn only pays a quarter per tuft, so mowing never becomes the real income.
 2. **Buy the café** ($100): boards fly off, the sign flickers on, customers arrive.
 3. **Serve**: a customer shows an order bubble. Tap the shop to make the order, then tap again to hand it over.
-4. **Zoom in to work a shop**: use the magnifier buttons, a pinch, or a double-tap on a shop. There are two zoom levels. While zoomed, swipe sideways or use the arrows to jump between shops.
+4. **Zoom in to work a shop**: use the magnifier buttons, a pinch, or a double-tap on a shop. There are two zoom levels. While zoomed, drag with one finger to move left, right, up and down the street (a flick keeps it gliding). The arrows jump straight to the next shop. Dragging that starts on the lawn still mows, even zoomed in.
 5. **Run several shops at once**: the bottom row shows every opportunity you can take on right now (Flower Shop, New sidewalk, trash…), not one at a time. Each shop has its own customers and its own upgrades (green arrow above it). That spreads your money and your attention.
 6. **Restore the street**: sidewalk (*choose cobblestone, limestone or brick*), landscaping (*choose pink, blue or white*), streetlights, then the glowing **bakery**.
 
