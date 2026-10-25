@@ -1,6 +1,6 @@
-# Street Story
+# The District
 
-*Working title.* A mobile-first 3D street-restoration game. You start on a run-down street with $0 and bring it back to life: mow the lawn, buy the abandoned café, sell espresso, upgrade, and restore the block one project at a time.
+A mobile-first 3D street-restoration game. You start on a run-down street with $0 and bring it back to life: mow the lawn, buy the abandoned café, sell espresso, upgrade, and restore the block one project at a time.
 
 Prototype #1 ends on a hook. After about 15 minutes the street has visibly changed, two shops are running, and the glowing **Bakery — $5,000** is just out of reach.
 

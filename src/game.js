@@ -1300,7 +1300,7 @@ export class Game {
     home.innerHTML = `
       ${worldMapSVG(this.base.cities, info)}
       <div class="home-top">
-        <div class="home-logo">Street Story</div>
+        <div class="home-logo"><span class="logo-the">THE</span><span class="logo-main">DISTRICT</span></div>
         <div class="home-where">${icon('map')}<span>You are in <b>${here.title} · ${this.cfg.street.title}</b></span></div>
       </div>
       <div class="home-bottom">

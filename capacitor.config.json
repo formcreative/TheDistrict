@@ -1,6 +1,6 @@
 {
-  "appId": "com.formcreative.streetstory",
-  "appName": "Street Story",
+  "appId": "com.formcreative.thedistrict",
+  "appName": "The District",
   "webDir": "dist",
   "backgroundColor": "#7cc8ff",
   "ios": {

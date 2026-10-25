@@ -1,4 +1,4 @@
-# Testing and publishing Street Story
+# Testing and publishing The District
 
 The game is a web build (Three.js) wrapped into native iOS and Android apps with [Capacitor](https://capacitorjs.com). One codebase ships to the browser, the App Store and Google Play.
 
@@ -45,7 +45,7 @@ npm run ios              # copies the game into the app and opens Xcode
 npm run android          # same, opens Android Studio
 ```
 
-- In **Xcode**: select the `App` target → Signing & Capabilities → choose your Team. The bundle ID is `com.formcreative.streetstory` (set in `capacitor.config.json`). Connect an iPhone and press Run.
+- In **Xcode**: select the `App` target → Signing & Capabilities → choose your Team. The bundle ID is `com.formcreative.thedistrict` (set in `capacitor.config.json`). Connect an iPhone and press Run.
 - In **Android Studio**: plug in an Android phone with USB debugging on, then press Run.
 - **Icons and splash screen:** create a 1024×1024 icon and a splash image, then run `npx @capacitor/assets generate`.
 - After any change to the game, run `npm run ios` / `npm run android` again to re-copy it.

@@ -1,8 +1,8 @@
 {
-  "name": "street-story",
+  "name": "the-district",
   "version": "0.1.0",
   "private": true,
-  "description": "Street Story — a mobile-first 3D street-restoration game prototype.",
+  "description": "The District — a mobile-first 3D city-restoration game prototype.",
   "type": "module",
   "scripts": {
     "start": "node tools/serve.mjs",
