@@ -2,8 +2,16 @@ import * as THREE from 'three';
 
 // Renderer, elevated three-quarter camera, lighting, and screen <-> world helpers.
 
-// The part of the world that must always be on screen.
-const CONTENT = new THREE.Box3(new THREE.Vector3(-4.1, 0, -8.0), new THREE.Vector3(4.1, 3.2, 7.3));
+// The whole street, and close-ups around a single shop front (two zoom levels).
+const STREET_VIEW = { box: new THREE.Box3(new THREE.Vector3(-4.1, 0, -8.0), new THREE.Vector3(4.1, 3.2, 7.3)) };
+export function shopView(x, level) {
+  const half = level >= 2 ? 1.25 : 1.85;
+  const box = level >= 2
+    ? new THREE.Box3(new THREE.Vector3(x - half, 0, -5.8), new THREE.Vector3(x + half, 1.9, -3.5))
+    : new THREE.Box3(new THREE.Vector3(x - half, 0, -7.2), new THREE.Vector3(x + half, 3.0, -3.3));
+  return { box, center: true };
+}
+export { STREET_VIEW };
 const PITCH = THREE.MathUtils.degToRad(46);
 const YAW = THREE.MathUtils.degToRad(-6);
 const TARGET = new THREE.Vector3(0, 0, -1);
@@ -53,13 +61,21 @@ export class Stage {
     this.width = w;
     this.height = h;
     this.renderer.setSize(w, h, false);
+    this.goal = this.fit(this.focus || STREET_VIEW);
+    this.frame = { ...this.goal };
+    this.apply();
+  }
 
+  // Frustum that fits `view.box` into the space between the HUD bars.
+  fit(view) {
+    const box = view.box;
+    const { width: w, height: h, uiTop: topPx, uiBottom: bottomPx } = this;
     this.camera.updateMatrixWorld();
     const inv = this.camera.matrixWorldInverse;
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
     const v = new THREE.Vector3();
     for (let i = 0; i < 8; i++) {
-      v.set(i & 1 ? CONTENT.max.x : CONTENT.min.x, i & 2 ? CONTENT.max.y : CONTENT.min.y, i & 4 ? CONTENT.max.z : CONTENT.min.z).applyMatrix4(inv);
+      v.set(i & 1 ? box.max.x : box.min.x, i & 2 ? box.max.y : box.min.y, i & 4 ? box.max.z : box.min.z).applyMatrix4(inv);
       minX = Math.min(minX, v.x); maxX = Math.max(maxX, v.x);
       minY = Math.min(minY, v.y); maxY = Math.max(maxY, v.y);
     }
@@ -67,14 +83,35 @@ export class Stage {
     const aspect = w / usableH;
     let cw = maxX - minX, ch = maxY - minY;
     if (cw / ch > aspect) ch = cw / aspect; else cw = ch * aspect;
-    const unitsPerPx = ch / usableH;
+    const upp = ch / usableH;
     const cx = (minX + maxX) / 2;
-    // anchor content to the bottom of the usable area; extra space becomes sky
-    const bottom = minY - (ch - (maxY - minY)) * 0.12 - bottomPx * unitsPerPx;
-    const top = bottom + h * unitsPerPx;
-    Object.assign(this.camera, { left: cx - (w * unitsPerPx) / 2, right: cx + (w * unitsPerPx) / 2, top, bottom });
+    // street view sits on the bottom bar (extra space becomes sky); close-ups are centred
+    const slack = ch - (maxY - minY);
+    const bottom = minY - slack * (view.center ? 0.5 : 0.12) - bottomPx * upp;
+    return { left: cx - (w * upp) / 2, right: cx + (w * upp) / 2, bottom, top: bottom + h * upp };
+  }
+
+  setFocus(view, instant = false) {
+    this.focus = view;
+    this.goal = this.fit(view);
+    if (instant || !this.frame) this.frame = { ...this.goal };
+  }
+
+  update(dt) {
+    if (!this.goal) return;
+    const k = 1 - Math.exp(-dt * 7);
+    let moving = false;
+    for (const key of ['left', 'right', 'top', 'bottom']) {
+      const d = this.goal[key] - this.frame[key];
+      if (Math.abs(d) > 1e-4) { this.frame[key] += d * k; moving = true; }
+    }
+    if (moving) this.apply();
+  }
+
+  apply() {
+    Object.assign(this.camera, this.frame);
     this.camera.updateProjectionMatrix();
-    this.unitsPerPx = unitsPerPx;
+    this.unitsPerPx = (this.frame.top - this.frame.bottom) / this.height;
   }
 
   toScreen(v3, out = { x: 0, y: 0 }) {

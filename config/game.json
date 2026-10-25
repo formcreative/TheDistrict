@@ -2,120 +2,241 @@
   "_readme": "All economy and content numbers live here. Edit and reload; no rebuild needed. Money is in whole dollars, times in seconds.",
   "startCash": 0,
   "grass": {
+    "_note": "Each overgrown tuft takes `passes` swipes; regrown lawn pays `regrownValue` per tuft (fractions add up).",
     "coinValue": 1,
-    "weedChance": 0.08,
-    "weedCoins": 3,
-    "regrowSeconds": 12,
-    "cutRadius": 0.42
+    "passes": 2,
+    "hitCooldown": 0.3,
+    "weedChance": 0.06,
+    "weedCoins": 2,
+    "regrowSeconds": 30,
+    "regrownValue": 0.25,
+    "cutRadius": 0.34
   },
   "trash": {
-    "rewardPerPile": 10
+    "rewardPerPile": 8
   },
-  "cafe": {
-    "baseCupPrice": 5,
-    "brewSeconds": 0.8,
-    "baristaBrewSeconds": 1.4,
-    "customerIntervalSeconds": 3.6,
-    "maxQueue": 3
-  },
-  "cafeUpgrades": [
-    {
-      "id": "machine2",
-      "title": "Espresso Machine II",
-      "icon": "machine",
-      "cost": 50,
-      "buildSeconds": 0,
-      "effect": {
-        "cupPrice": 8
-      },
-      "effectLabel": "$8 per cup"
+  "shops": {
+    "cafe": {
+      "title": "Café",
+      "icon": "cup",
+      "item": "cup",
+      "basePrice": 5,
+      "serveSeconds": 0.8,
+      "staffSeconds": 1.3,
+      "customerIntervalSeconds": 3,
+      "maxQueue": 3,
+      "upgrades": [
+        {
+          "id": "machine2",
+          "title": "Espresso Machine II",
+          "icon": "machine",
+          "cost": 50,
+          "buildSeconds": 0,
+          "effect": {
+            "price": 8
+          },
+          "effectLabel": "$8 per cup"
+        },
+        {
+          "id": "barista",
+          "title": "Hire a Barista",
+          "icon": "barista",
+          "cost": 175,
+          "buildSeconds": 20,
+          "effect": {
+            "autoServe": true
+          },
+          "effectLabel": "Serves for you"
+        },
+        {
+          "id": "seating",
+          "title": "Outdoor Seating",
+          "icon": "seating",
+          "cost": 450,
+          "buildSeconds": 40,
+          "effect": {
+            "customerRate": 1.4,
+            "decor": "seating"
+          },
+          "effectLabel": "More customers"
+        },
+        {
+          "id": "latte",
+          "title": "Latte Bar",
+          "icon": "latte",
+          "cost": 700,
+          "buildSeconds": 60,
+          "effect": {
+            "price": 14
+          },
+          "effectLabel": "$14 per cup"
+        },
+        {
+          "id": "barista2",
+          "title": "Second Barista",
+          "icon": "barista",
+          "cost": 1600,
+          "buildSeconds": 90,
+          "effect": {
+            "staffSpeed": 1.6,
+            "customerRate": 1.3
+          },
+          "effectLabel": "Faster service"
+        }
+      ]
     },
-    {
-      "id": "barista",
-      "title": "Hire a Barista",
-      "icon": "barista",
-      "cost": 150,
-      "buildSeconds": 20,
-      "effect": {
-        "autoServe": true
-      },
-      "effectLabel": "Serves for you"
+    "flowershop": {
+      "title": "Flower Shop",
+      "icon": "flower",
+      "item": "bouquet",
+      "basePrice": 12,
+      "serveSeconds": 1.3,
+      "staffSeconds": 2.2,
+      "customerIntervalSeconds": 5.5,
+      "maxQueue": 3,
+      "upgrades": [
+        {
+          "id": "vases",
+          "title": "Fancy Vases",
+          "icon": "flower",
+          "cost": 250,
+          "buildSeconds": 0,
+          "effect": {
+            "price": 18
+          },
+          "effectLabel": "$18 per bouquet"
+        },
+        {
+          "id": "florist",
+          "title": "Hire a Florist",
+          "icon": "barista",
+          "cost": 500,
+          "buildSeconds": 45,
+          "effect": {
+            "autoServe": true
+          },
+          "effectLabel": "Serves for you"
+        },
+        {
+          "id": "cart",
+          "title": "Flower Cart",
+          "icon": "flower",
+          "cost": 1100,
+          "buildSeconds": 60,
+          "effect": {
+            "customerRate": 1.5,
+            "decor": "cart"
+          },
+          "effectLabel": "More customers"
+        },
+        {
+          "id": "wedding",
+          "title": "Wedding Orders",
+          "icon": "flower",
+          "cost": 2200,
+          "buildSeconds": 120,
+          "effect": {
+            "price": 30
+          },
+          "effectLabel": "$30 per bouquet"
+        }
+      ]
     },
-    {
-      "id": "seating",
-      "title": "Outdoor Seating",
-      "icon": "seating",
-      "cost": 300,
-      "buildSeconds": 30,
-      "effect": {
-        "customerRate": 1.5
-      },
-      "effectLabel": "More customers"
-    },
-    {
-      "id": "latte",
-      "title": "Latte Bar",
-      "icon": "latte",
-      "cost": 600,
-      "buildSeconds": 45,
-      "effect": {
-        "cupPrice": 14
-      },
-      "effectLabel": "$14 per cup"
-    },
-    {
-      "id": "barista2",
-      "title": "Second Barista",
-      "icon": "barista",
-      "cost": 1200,
-      "buildSeconds": 60,
-      "effect": {
-        "customerRate": 1.4,
-        "baristaSpeed": 1.6
-      },
-      "effectLabel": "Faster service"
+    "bakery": {
+      "title": "Bakery",
+      "icon": "croissant",
+      "item": "bag",
+      "basePrice": 9,
+      "serveSeconds": 1.0,
+      "staffSeconds": 1.8,
+      "customerIntervalSeconds": 3,
+      "maxQueue": 3,
+      "upgrades": [
+        {
+          "id": "oven",
+          "title": "Stone Oven",
+          "icon": "croissant",
+          "cost": 1200,
+          "buildSeconds": 0,
+          "effect": {
+            "price": 15
+          },
+          "effectLabel": "$15 per bag"
+        },
+        {
+          "id": "baker",
+          "title": "Hire a Baker",
+          "icon": "barista",
+          "cost": 2500,
+          "buildSeconds": 120,
+          "effect": {
+            "autoServe": true
+          },
+          "effectLabel": "Serves for you"
+        },
+        {
+          "id": "tables",
+          "title": "Sidewalk Tables",
+          "icon": "seating",
+          "cost": 4000,
+          "buildSeconds": 180,
+          "effect": {
+            "customerRate": 1.5,
+            "decor": "tables"
+          },
+          "effectLabel": "More customers"
+        }
+      ]
     }
-  ],
+  },
   "projects": [
     {
       "id": "cafe",
       "type": "building",
       "building": "cafe",
+      "shop": "cafe",
       "title": "Café",
       "icon": "cup",
       "cost": 100,
-      "buildSeconds": 0
+      "buildSeconds": 0,
+      "requires": []
     },
     {
       "id": "trash",
       "type": "task",
       "title": "Pick up trash",
       "icon": "trash",
-      "cost": 0
+      "cost": 0,
+      "requires": [
+        "cafe"
+      ]
+    },
+    {
+      "id": "flowershop",
+      "type": "building",
+      "building": "flowershop",
+      "shop": "flowershop",
+      "title": "Flower Shop",
+      "icon": "flower",
+      "cost": 300,
+      "buildSeconds": 30,
+      "requires": [
+        "cafe"
+      ]
     },
     {
       "id": "sidewalk",
       "type": "street",
       "title": "New sidewalk",
       "icon": "paving",
-      "cost": 400,
-      "buildSeconds": 20,
+      "cost": 450,
+      "buildSeconds": 30,
       "choice": "pavement",
+      "requires": [
+        "cafe"
+      ],
       "effect": {
         "customerRate": 1.15
-      }
-    },
-    {
-      "id": "flowershop",
-      "type": "building",
-      "building": "flowershop",
-      "title": "Flower Shop",
-      "icon": "flower",
-      "cost": 800,
-      "buildSeconds": 30,
-      "effect": {
-        "passivePerSecond": 7,
-        "customerRate": 1.1
       }
     },
     {
@@ -123,9 +244,12 @@
       "type": "street",
       "title": "Landscaping",
       "icon": "tree",
-      "cost": 1000,
-      "buildSeconds": 30,
+      "cost": 800,
+      "buildSeconds": 45,
       "choice": "flowers",
+      "requires": [
+        "flowershop"
+      ],
       "effect": {
         "customerRate": 1.15
       }
@@ -135,26 +259,29 @@
       "type": "street",
       "title": "Streetlights",
       "icon": "lamp",
-      "cost": 1500,
-      "buildSeconds": 30,
+      "cost": 1100,
+      "buildSeconds": 45,
+      "requires": [
+        "sidewalk"
+      ],
       "effect": {
-        "customerRate": 1.15,
-        "passivePerSecond": 5
+        "customerRate": 1.15
       }
     },
     {
       "id": "bakery",
       "type": "building",
       "building": "bakery",
+      "shop": "bakery",
       "title": "Bakery",
       "icon": "croissant",
       "cost": 5000,
       "buildSeconds": 0,
       "hook": true,
-      "effect": {
-        "passivePerSecond": 15,
-        "customerRate": 1.2
-      }
+      "requires": [
+        "landscaping",
+        "streetlights"
+      ]
     },
     {
       "id": "repave",
@@ -162,7 +289,10 @@
       "title": "Repave road",
       "icon": "road",
       "cost": 6000,
-      "buildSeconds": 60,
+      "buildSeconds": 120,
+      "requires": [
+        "bakery"
+      ],
       "effect": {
         "customerRate": 1.2
       }
@@ -174,7 +304,10 @@
       "title": "Boutique",
       "icon": "bag",
       "cost": 15000,
-      "buildSeconds": 90,
+      "buildSeconds": 180,
+      "requires": [
+        "repave"
+      ],
       "effect": {
         "passivePerSecond": 30
       }
@@ -224,8 +357,20 @@
     "perCompletedProject": 1,
     "max": 9
   },
+  "pressure": {
+    "_note": "Pinch point. Nothing here happens until BOTH conditions are met, so the opening stays generous.",
+    "startsAfterSeconds": 360,
+    "startsAfterProject": "flowershop",
+    "patienceSeconds": 12,
+    "rush": {
+      "firstAfterSeconds": 45,
+      "everySeconds": 150,
+      "durationSeconds": 40,
+      "customerRate": 3
+    }
+  },
   "monetization": {
-    "_note": "fake_door = buttons look real, record the tap, never charge, then grant the reward for free.",
+    "_note": "fake_door = buttons look real, record the tap, never charge, then grant the reward for free. Offers stay hidden until the pinch point starts.",
     "mode": "fake_door",
     "skipPriceLabel": "$0.99",
     "cashOffer": {
@@ -234,6 +379,11 @@
       "priceLabel": "$0.99",
       "showWhenCashFraction": 0.6,
       "onlyForHook": true
+    },
+    "rushHelper": {
+      "enabled": true,
+      "priceLabel": "$0.99",
+      "speedMultiplier": 1.8
     }
   }
 }

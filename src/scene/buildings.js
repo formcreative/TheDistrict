@@ -168,42 +168,51 @@ export class Building {
 
   buildSpecial() {
     const fz = D / 2, X = this.extras;
-    if (this.id === 'cafe') {
-      // espresso window counter on the sidewalk
+    this.decor = {};
+    const counter = (top, front, accent) => {
       const c = group(X, -0.5, 0.12, fz + 0.48);
-      box(c, 0.98, 0.5, 0.42, '#2d7a74', { y: 0 }, 0.04);
-      box(c, 1.06, 0.07, 0.5, '#e8d3b3', { y: 0.5 }, 0.03);
+      box(c, 0.98, 0.5, 0.42, front, { y: 0 }, 0.04);
+      box(c, 1.06, 0.07, 0.5, top, { y: 0.5 }, 0.03);
+      box(c, 0.98, 0.06, 0.04, accent, { y: 0.36, z: 0.22 }, 0.01);
+      this.counter = c;
+      return c;
+    };
+    if (this.id === 'cafe') {
+      const c = counter('#e8d3b3', '#2d7a74', '#ff6a4a');
       const m = group(c, 0.12, 0.57, -0.02);
       box(m, 0.4, 0.32, 0.28, '#d5dde2', { y: 0 }, 0.05);
       box(m, 0.42, 0.06, 0.3, '#e0523a', { y: 0.32 }, 0.02);
       box(m, 0.12, 0.04, 0.06, '#3b3f48', { y: 0.12, z: 0.16 }, 0.01);
       cyl(m, 0.05, 0.04, 0.08, '#ffffff', { x: -0.08, y: 0.02, z: 0.2 }, 10);
       this.machine = m;
-      this.counter = c;
-      this.cupSpot = new THREE.Vector3();
-      // outdoor seating, shown after that upgrade
-      this.seating = group(this.root, -1.2, 0.12, fz + 0.75);
-      for (const [x, z] of [[-0.35, -0.05], [0.25, 0.35]]) {
-        const t = group(this.seating, x, 0, z);
-        cyl(t, 0.2, 0.2, 0.04, '#ffffff', { y: 0.36 }, 16);
-        cyl(t, 0.025, 0.04, 0.36, '#3b3f48', {}, 8);
-        cyl(t, 0.015, 0.015, 1.05, '#3b3f48', { y: 0.36 }, 6);
-        const umb = add(t, geo('umb', () => new THREE.ConeGeometry(0.42, 0.22, 10)), mat('#ff6a4a'), { y: 1.28 });
-        umb.material = mat(x < 0 ? '#ff6a4a' : '#fff4e4');
-        for (const a of [0, Math.PI]) box(t, 0.16, 0.24, 0.16, '#e0a36b', { x: Math.cos(a) * 0.3, y: 0, z: Math.sin(a) * 0.3 }, 0.03);
-      }
-      this.seating.visible = false;
+      this.decor.seating = this.tables(-1.2, ['#ff6a4a', '#fff4e4']);
     } else if (this.id === 'flowershop') {
-      for (const [x, c] of [[-0.85, '#ff7eb9'], [-0.55, '#ffd23f'], [-0.25, '#ff5a5a']]) {
-        const b = group(X, x, 0.12, fz + 0.4);
-        cyl(b, 0.1, 0.08, 0.2, '#6d8fb0', {}, 10);
-        for (let i = 0; i < 4; i++) sphere(b, 0.06, c, { x: Math.cos(i * 1.6) * 0.05, y: 0.26 + (i % 2) * 0.04, z: Math.sin(i * 1.6) * 0.05 });
+      const c = counter('#f3e4cf', '#3f8a5a', '#ff86ad');
+      const m = group(c, 0.1, 0.57, -0.02);
+      for (const [x, col] of [[-0.14, '#ff7eb9'], [0.02, '#ffd23f'], [0.18, '#ff5a5a']]) {
+        const b = group(m, x, 0, 0);
+        cyl(b, 0.07, 0.055, 0.16, '#6d8fb0', {}, 10);
+        for (let i = 0; i < 4; i++) sphere(b, 0.05, col, { x: Math.cos(i * 1.6) * 0.04, y: 0.2 + (i % 2) * 0.03, z: Math.sin(i * 1.6) * 0.04 });
       }
+      this.machine = m;
+      const cart = group(this.root, -1.05, 0.12, fz + 0.85);
+      box(cart, 0.7, 0.3, 0.4, '#3f8a5a', { y: 0.12 }, 0.05);
+      for (const x of [-0.3, 0.3]) cyl(cart, 0.1, 0.1, 0.05, '#2b2f38', { x, y: 0.02, z: 0.2, rz: Math.PI / 2 }, 12).rotation.set(0, 0, Math.PI / 2);
+      ['#ff7eb9', '#ffffff', '#ffd23f', '#9b6bff', '#ff5a5a'].forEach((col, i) => {
+        for (let k = 0; k < 3; k++) sphere(cart, 0.07, col, { x: -0.26 + i * 0.13, y: 0.5 + (k % 2) * 0.05, z: -0.1 + k * 0.1 });
+      });
+      cart.visible = false;
+      this.decor.cart = cart;
     } else if (this.id === 'bakery') {
-      const sign = group(X, -0.5, 0.12, fz + 0.38);
-      box(sign, 0.36, 0.5, 0.06, '#5b3a26', { y: 0, rx: -0.2 }, 0.02);
-      const crois = add(sign, geo('crois', () => new THREE.TorusGeometry(0.1, 0.05, 8, 14, Math.PI * 1.3)), mat('#e9a64a'), { y: 0.28, z: 0.08, center: true });
-      crois.rotation.z = Math.PI * 0.35;
+      const c = counter('#f6e7cf', '#8a5636', '#f2a03a');
+      const m = group(c, 0.1, 0.57, -0.02);
+      box(m, 0.5, 0.26, 0.3, '#cfeaf5', { y: 0 }, 0.04);
+      for (let i = 0; i < 3; i++) {
+        const cr = add(m, geo('crois', () => new THREE.TorusGeometry(0.06, 0.03, 8, 14, Math.PI * 1.3)), mat('#e9a64a'), { x: -0.14 + i * 0.14, y: 0.08, z: 0.02, center: true });
+        cr.rotation.set(-Math.PI / 2, 0, Math.PI * 0.35);
+      }
+      this.machine = m;
+      this.decor.tables = this.tables(1.12, ['#f2a03a', '#fff8e8']);
     } else if (this.id === 'boutique') {
       for (const x of [-0.75, -0.3]) {
         const m = group(X, x, 0.14, fz - 0.1);
@@ -211,6 +220,25 @@ export class Building {
         sphere(m, 0.08, '#ffffff', { y: 0.85 });
       }
     }
+  }
+
+  tables(x0, colors) {
+    const fz = D / 2;
+    const g = group(this.root, x0, 0.12, fz + 0.75);
+    [[-0.3, -0.05], [0.22, 0.35]].forEach(([x, z], i) => {
+      const t = group(g, x, 0, z);
+      cyl(t, 0.2, 0.2, 0.04, '#ffffff', { y: 0.36 }, 16);
+      cyl(t, 0.025, 0.04, 0.36, '#3b3f48', {}, 8);
+      cyl(t, 0.015, 0.015, 1.05, '#3b3f48', { y: 0.36 }, 6);
+      add(t, geo('umb', () => new THREE.ConeGeometry(0.42, 0.22, 10)), mat(colors[i % 2]), { y: 1.28 });
+      for (const a of [0, Math.PI]) box(t, 0.16, 0.24, 0.16, '#e0a36b', { x: Math.cos(a) * 0.3, y: 0, z: Math.sin(a) * 0.3 }, 0.03);
+    });
+    g.visible = false;
+    return g;
+  }
+
+  setDecor(name, on) {
+    if (this.decor?.[name]) this.decor[name].visible = on;
   }
 
   // world anchor for UI badges above the building
@@ -265,10 +293,6 @@ export class Building {
 
   setConstructing(on) {
     this.scaffold.visible = on;
-  }
-
-  setSeating(on) {
-    if (this.seating) this.seating.visible = on;
   }
 
   setHighlight(on) {
@@ -330,7 +354,7 @@ export class Building {
     }
   }
 
-  // world positions used by the café queue
+  // world positions used by each shop's queue
   counterFront() { return new THREE.Vector3(this.style.x - 0.5, 0.12, FACADE_Z + 1.05); }
   machineTop() { return new THREE.Vector3(this.style.x - 0.38, 1.25, FACADE_Z + 0.5); }
 }

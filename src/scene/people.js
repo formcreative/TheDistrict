@@ -28,10 +28,8 @@ export class Person {
     if (Math.random() < 0.35) sphere(g, 0.07, hair, { y: 0.56, z: -0.15 });
     for (const x of [-0.05, 0.05]) sphere(g, 0.02, '#2b2f45', { x, y: 0.56, z: 0.135 });
     for (const x of [-0.085, 0.085]) sphere(g, 0.025, '#ff9a9a', { x, y: 0.51, z: 0.12 }, 1, 0.6, 0.4);
-    this.cup = group(g, 0.18, 0.22, 0.1);
-    cyl(this.cup, 0.045, 0.035, 0.1, '#ffffff', {}, 10);
-    cyl(this.cup, 0.047, 0.047, 0.03, '#ff6a4a', { y: 0.035 }, 10);
-    this.cup.visible = false;
+    this.hand = group(g, 0.18, 0.22, 0.1);
+    this.holding = null;
     this.shadow = add(this.root, geo('pshadow', () => new THREE.CircleGeometry(0.2, 16).rotateX(-Math.PI / 2)), new THREE.MeshBasicMaterial({ color: '#1e2433', transparent: true, opacity: 0.18, depthWrite: false }), { y: 0.005, center: true, cast: false, receive: false });
     this.root.scale.setScalar(opts.scale || 0.95 + Math.random() * 0.12);
     this.walkT = Math.random() * 6;
@@ -42,6 +40,23 @@ export class Person {
   }
 
   get pos() { return this.root.position; }
+
+  // What the customer walks away with: 'cup' | 'bouquet' | 'bag'
+  hold(type) {
+    this.hand.clear();
+    this.holding = type;
+    const h = this.hand;
+    if (type === 'cup') {
+      cyl(h, 0.045, 0.035, 0.1, '#ffffff', {}, 10);
+      cyl(h, 0.047, 0.047, 0.03, '#ff6a4a', { y: 0.035 }, 10);
+    } else if (type === 'bouquet') {
+      add(h, geo('wrap', () => new THREE.ConeGeometry(0.07, 0.18, 8).rotateX(Math.PI)), mat('#fff3d6'), { y: -0.02 });
+      for (const [x, z, c] of [[0, 0, '#ff7eb9'], [0.05, 0.02, '#ffd23f'], [-0.05, 0.02, '#ff5a5a'], [0, -0.04, '#ffffff']]) sphere(h, 0.045, c, { x, y: 0.2, z });
+    } else if (type === 'bag') {
+      box(h, 0.12, 0.14, 0.08, '#e9d2a8', { y: -0.04 }, 0.02);
+      box(h, 0.12, 0.03, 0.08, '#c4623e', { y: 0.06 }, 0.01);
+    }
+  }
 
   place(x, y, z) { this.root.position.set(x, y, z); return this; }
 
@@ -72,12 +87,12 @@ export class Person {
       this.legL.rotation.x = s * 0.6;
       this.legR.rotation.x = -s * 0.6;
       this.armL.rotation.x = -s * 0.5;
-      this.armR.rotation.x = this.cup.visible ? -0.9 : s * 0.5;
+      this.armR.rotation.x = this.holding ? -0.9 : s * 0.5;
       this.body.position.y = Math.abs(Math.cos(this.walkT)) * 0.035;
     } else {
       this.legL.rotation.x = this.legR.rotation.x = 0;
       this.armL.rotation.x = 0;
-      this.armR.rotation.x = this.cup.visible ? -0.9 : 0;
+      this.armR.rotation.x = this.holding ? -0.9 : 0;
       this.body.position.y = 0;
     }
   }

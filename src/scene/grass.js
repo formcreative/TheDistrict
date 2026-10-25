@@ -50,7 +50,7 @@ export class Grass {
           z: L.z0 + (j + 0.5) * ch + (r() - 0.5) * 0.1,
           px: L.x0 + (i + 0.5) * cw, pz: L.z0 + (j + 0.5) * ch,
           stripe: i % 2, ry: r() * 6, phase: r() * 6.28, tint: Math.floor(r() * 4),
-          weed: r() < 0.08, state: 'tall', grow: 1, growT: 0, lush: false, everCut: false, patch: 0, cutAt: 0,
+          weed: r() < 0.08, state: 'tall', grow: 1, growT: 0, lush: false, everCut: false, patch: 0, cutAt: 0, hp: 2, lastHit: -9,
         });
       }
     }
@@ -86,14 +86,15 @@ export class Grass {
   restore(str) {
     if (!str || str.length !== this.tufts.length) return;
     this.tufts.forEach((t, i) => {
-      if (str[i] === '1') { t.everCut = true; t.lush = true; t.patch = 1; t.weed = false; }
+      if (str[i] === '1') { t.everCut = true; t.lush = true; t.patch = 1; t.weed = false; t.hp = 0; }
     });
   }
 
   remaining() { return this.tufts.filter((t) => !t.everCut).length; }
 
-  // Cuts every standing tuft within `radius` of the segment a→b (world XZ).
-  cutSegment(ax, az, bx, bz, radius, onCut) {
+  // Hits every standing tuft within `radius` of the segment a→b (world XZ). Overgrown tufts
+  // take `passes` hits (a short cooldown means the player has to swipe back over them).
+  cutSegment(ax, az, bx, bz, radius, onCut, { passes = 1, cooldown = 0.3, onHit } = {}) {
     const dx = bx - ax, dz = bz - az, L = dx * dx + dz * dz;
     for (const t of this.tufts) {
       if (t.state !== 'tall') continue;
@@ -101,6 +102,13 @@ export class Grass {
       k = Math.max(0, Math.min(1, k));
       const d = Math.hypot(t.x - (ax + dx * k), t.z - (az + dz * k));
       if (d < radius) {
+        if (this.time - t.lastHit < cooldown) continue;
+        t.lastHit = this.time;
+        if (!t.lush) {
+          if (t.hp === undefined || t.hp > passes) t.hp = passes;
+          t.hp--;
+          if (t.hp > 0) { t.half = true; onHit?.(t); continue; }
+        }
         const wasWeed = t.weed && !t.lush;
         t.state = 'cut';
         t.grow = 0;
@@ -134,7 +142,8 @@ export class Grass {
       const g = t.grow;
       o.position.set(t.x, 0.04, t.z);
       o.rotation.set(sway, t.ry, sway * 0.6);
-      o.scale.set(g || 0.0001, g || 0.0001, g || 0.0001);
+      const hy = t.half && !t.lush ? 0.5 : 1;
+      o.scale.set(g || 0.0001, (g || 0.0001) * hy, g || 0.0001);
       if (t.lush) {
         o.updateMatrix();
         this.lush.setMatrixAt(i, o.matrix);
@@ -147,7 +156,7 @@ export class Grass {
         this.lush.setMatrixAt(i, o.matrix);
       }
       // weed flower on top
-      if (t.weed && !t.lush && g > 0.5) {
+      if (t.weed && !t.lush && !t.half && g > 0.5) {
         o.position.set(t.x + sway * 0.4, 0.04 + 0.55 * g, t.z);
         o.rotation.set(0, 0, 0);
         o.scale.setScalar(g);

@@ -123,7 +123,10 @@ export class UI {
     for (const [id, a] of this.anchors) {
       if (!a.seen) { a.el.remove(); this.anchors.delete(id); continue; }
       const p = stage.toScreen(a.getWorld());
-      a.el.style.transform = `translate(${p.x}px, ${p.y + a.offsetY}px)`;
+      // keep badges fully on screen when their shop sits at the edge
+      const half = (a.el.firstElementChild?.offsetWidth || 0) / 2 + 6;
+      const x = half && half * 2 < stage.width ? Math.min(stage.width - half, Math.max(half, p.x)) : p.x;
+      a.el.style.transform = `translate(${x}px, ${p.y + a.offsetY}px)`;
     }
   }
 
