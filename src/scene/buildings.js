@@ -4,16 +4,16 @@ import { rbox, mat, glow, add, box, sphere, cyl, group, signTexture, geo, easeOu
 // Shops along the far side of the street. Each has a neglected and a restored look.
 
 export const STYLES = {
-  flowershop: { x: -2.7, sign: 'FLOWERS', h: 2.4, roof: 'gable', wall: '#ffd8e1', trim: '#3f8a5a', awnA: '#ff86ad', awnB: '#fff3f6', signBg: '#3f8a5a', signFg: '#fff3f6', door: '#3f8a5a', roofColor: '#e8735f' },
-  cafe: { x: 0, sign: 'CAFÉ', h: 2.7, roof: 'flat', roofColor: '#d9cdb8', wall: '#fff0d6', trim: '#2d7a74', awnA: '#ff6a4a', awnB: '#fff4e4', signBg: '#24625e', signFg: '#fff1da', door: '#2d7a74' },
-  bakery: { x: 2.7, sign: 'BAKERY', h: 2.55, roof: 'gable', wall: '#ffe7a6', trim: '#8a5636', awnA: '#f2a03a', awnB: '#fff8e8', signBg: '#8a5636', signFg: '#fff1d0', door: '#8a5636', roofColor: '#c4623e' },
-  boutique: { x: 5.4, sign: 'BOUTIQUE', h: 2.8, roof: 'flat', roofColor: '#d6cfe6', wall: '#e5dcff', trim: '#5b4c96', awnA: '#8c78e6', awnB: '#ffffff', signBg: '#4a3d80', signFg: '#ffffff', door: '#5b4c96' },
+  flowershop: { x: -2.7, sign: 'FLOWERS', h: 2.4, roof: 'gable', wall: '#ffc9da', trim: '#21a55c', awnA: '#ff5c9a', awnB: '#fff3f7', signBg: '#1f9454', signFg: '#fff3f7', door: '#21a55c', roofColor: '#ff6f59' },
+  cafe: { x: 0, sign: 'CAFÉ', h: 2.7, roof: 'flat', roofColor: '#ead9bd', wall: '#fff2d4', trim: '#14a394', awnA: '#ff4f3a', awnB: '#fff6e6', signBg: '#0f8a7e', signFg: '#fff6e6', door: '#14a394' },
+  bakery: { x: 2.7, sign: 'BAKERY', h: 2.55, roof: 'gable', wall: '#ffe07a', trim: '#b5562a', awnA: '#ff9a1f', awnB: '#fffaea', signBg: '#a8481f', signFg: '#fff4d6', door: '#b5562a', roofColor: '#e8553a' },
+  boutique: { x: 5.4, sign: 'BOUTIQUE', h: 2.8, roof: 'flat', roofColor: '#ddd0ff', wall: '#dccbff', trim: '#6a45e0', awnA: '#9b6bff', awnB: '#ffffff', signBg: '#5634c4', signFg: '#ffffff', door: '#6a45e0' },
 };
 
 const W = 2.45, D = 2.2, LOT_Z = -6.7;
 export const FACADE_Z = LOT_Z + D / 2; // -5.6
 
-const DERELICT = { wall: '#a9a397', trim: '#7b746a', awnA: '#b8afa3', awnB: '#968e84', glass: '#3c3d44', roofColor: '#8b7f72' };
+const DERELICT = { wall: '#c2b3a2', trim: '#8c7c6c', awnA: '#d2b8a4', awnB: '#a7b2b6', glass: '#3d4253', roofColor: '#9c8775' };
 
 function plank(parent, x, y, z, len, angle, list) {
   const m = box(parent, len, 0.1, 0.04, '#ad875a', { x, y, z, rz: angle, center: true }, 0.015);
@@ -178,7 +178,7 @@ export class Building {
       return c;
     };
     if (this.id === 'cafe') {
-      const c = counter('#e8d3b3', '#2d7a74', '#ff6a4a');
+      const c = counter('#f2dcb8', '#14a394', '#ff4f3a');
       const m = group(c, 0.12, 0.57, -0.02);
       box(m, 0.4, 0.32, 0.28, '#d5dde2', { y: 0 }, 0.05);
       box(m, 0.42, 0.06, 0.3, '#e0523a', { y: 0.32 }, 0.02);
@@ -187,7 +187,7 @@ export class Building {
       this.machine = m;
       this.decor.seating = this.tables(-1.2, ['#ff6a4a', '#fff4e4']);
     } else if (this.id === 'flowershop') {
-      const c = counter('#f3e4cf', '#3f8a5a', '#ff86ad');
+      const c = counter('#f7e6d0', '#21a55c', '#ff5c9a');
       const m = group(c, 0.1, 0.57, -0.02);
       for (const [x, col] of [[-0.14, '#ff7eb9'], [0.02, '#ffd23f'], [0.18, '#ff5a5a']]) {
         const b = group(m, x, 0, 0);
@@ -204,7 +204,7 @@ export class Building {
       cart.visible = false;
       this.decor.cart = cart;
     } else if (this.id === 'bakery') {
-      const c = counter('#f6e7cf', '#8a5636', '#f2a03a');
+      const c = counter('#fbe9cc', '#b5562a', '#ff9a1f');
       const m = group(c, 0.1, 0.57, -0.02);
       box(m, 0.5, 0.26, 0.3, '#cfeaf5', { y: 0 }, 0.04);
       for (let i = 0; i < 3; i++) {
@@ -255,10 +255,10 @@ export class Building {
     this.mRoof.color.set(open ? s.roofColor || s.trim : DERELICT.roofColor);
     for (const b of this.boards) b.visible = !open;
     for (const u of this.upper) {
-      u.glass.material = open ? mat('#a9dcf5', { emissive: '#bfe6ff', emissiveIntensity: 0.25 }) : mat(DERELICT.glass);
+      u.glass.material = open ? mat('#8fd6ff', { emissive: '#bfe9ff', emissiveIntensity: 0.35 }) : mat(DERELICT.glass);
       u.box.visible = open;
     }
-    this.shopGlass.material = open ? mat('#ffd28a', { emissive: '#ffb04a', emissiveIntensity: 0.75 }) : mat(DERELICT.glass);
+    this.shopGlass.material = open ? mat('#ffd27a', { emissive: '#ffa63a', emissiveIntensity: 0.9 }) : mat(DERELICT.glass);
     this.door.material = open ? mat(s.door) : mat('#5a4a3e');
     this.doorWindow.visible = open;
     this.saleSign.visible = !open;
@@ -361,7 +361,7 @@ export class Building {
 
 // Closed storefronts that frame the edges of the street.
 export function framingBuildings(scene) {
-  for (const [x, h, c] of [[-5.4, 2.6, '#a8a093'], [-8.1, 2.9, '#a59b8f'], [8.1, 2.5, '#aba497'], [10.8, 2.7, '#a39f96']]) {
+  for (const [x, h, c] of [[-5.4, 2.6, '#c4b19e'], [-8.1, 2.9, '#b9a99a'], [8.1, 2.5, '#bfb4a2'], [10.8, 2.7, '#b6aa9c']]) {
     const g = group(scene, x, 0, LOT_Z);
     box(g, W + 0.12, 0.14, D + 0.12, '#9a948a', { y: 0 }, 0.04);
     box(g, W, h, D, c, { y: 0.12 }, 0.06);

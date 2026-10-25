@@ -79,12 +79,12 @@ function buildPaving(type, seed = 3) {
   const tiles = [];
   let geom, base;
   if (type === 'cobblestone') {
-    base = '#6e6a66';
+    base = '#7a6a5e';
     geom = rbox(0.24, 0.1, 0.24, 0.05, 2);
     for (const z of walkRects()) {
       for (let zz = z.z0 + 0.14, row = 0; zz < z.z1 - 0.1; zz += 0.26, row++) {
         for (let xx = z.x0 + 0.14 + (row % 2) * 0.13; xx < z.x1 - 0.1; xx += 0.26) {
-          tiles.push({ x: xx + (r() - 0.5) * 0.03, y: 0.08, z: zz + (r() - 0.5) * 0.03, ry: (r() - 0.5) * 0.3, sx: 0.9 + r() * 0.15, sz: 0.9 + r() * 0.15, color: pick(['#a7a19a', '#b5aea5', '#9b958e', '#c0b8ad', '#a39c90']) });
+          tiles.push({ x: xx + (r() - 0.5) * 0.03, y: 0.08, z: zz + (r() - 0.5) * 0.03, ry: (r() - 0.5) * 0.3, sx: 0.9 + r() * 0.15, sz: 0.9 + r() * 0.15, color: pick(['#b8aa9a', '#c9bba8', '#a89b8c', '#d4c5b0', '#b3a08c']) });
         }
       }
     }
@@ -94,7 +94,7 @@ function buildPaving(type, seed = 3) {
     for (const z of walkRects()) {
       for (let zz = z.z0 + 0.3, row = 0; zz < z.z1 - 0.2; zz += 0.6, row++) {
         for (let xx = z.x0 + 0.44 + (row % 2) * 0.45; xx < z.x1 - 0.3; xx += 0.9) {
-          tiles.push({ x: xx, y: 0.08, z: zz, color: pick(['#f1e6cd', '#ebdfc3', '#f5ecd8', '#e6d8b8']) });
+          tiles.push({ x: xx, y: 0.08, z: zz, color: pick(['#fbefd2', '#f6e3bd', '#fff5df', '#f2dcae']) });
         }
       }
     }
@@ -104,19 +104,19 @@ function buildPaving(type, seed = 3) {
     for (const z of walkRects()) {
       for (let zz = z.z0 + 0.09, row = 0; zz < z.z1 - 0.06; zz += 0.16, row++) {
         for (let xx = z.x0 + 0.16 + (row % 2) * 0.16; xx < z.x1 - 0.12; xx += 0.32) {
-          tiles.push({ x: xx, y: 0.08, z: zz, color: pick(['#c4573f', '#b84d37', '#cf6449', '#ad4532', '#d16e52']) });
+          tiles.push({ x: xx, y: 0.08, z: zz, color: pick(['#e0603e', '#d2543a', '#ea7150', '#c84a32', '#f07e58']) });
         }
       }
     }
   } else {
     // cracked, heaved concrete with missing slabs and weeds
-    base = '#8f8774';
+    base = '#9c8f78';
     geom = rbox(0.6, 0.1, 0.6, 0.03, 1);
     for (const z of walkRects()) {
       for (let zz = z.z0 + 0.34; zz < z.z1 - 0.2; zz += 0.64) {
         for (let xx = z.x0 + 0.34; xx < z.x1 - 0.2; xx += 0.64) {
           if (r() < 0.1) continue;
-          tiles.push({ x: xx, y: 0.06 + r() * 0.03, z: zz, rx: (r() - 0.5) * 0.08, rz: (r() - 0.5) * 0.08, ry: (r() - 0.5) * 0.06, color: pick(['#bdb6a8', '#b3ab9c', '#c6bfb1', '#a9a192']) });
+          tiles.push({ x: xx, y: 0.06 + r() * 0.03, z: zz, rx: (r() - 0.5) * 0.08, rz: (r() - 0.5) * 0.08, ry: (r() - 0.5) * 0.06, color: pick(['#cfc3b0', '#c4b7a2', '#d8cdbb', '#bbad97']) });
         }
       }
     }
@@ -124,7 +124,7 @@ function buildPaving(type, seed = 3) {
     const weeds = [];
     for (let i = 0; i < 40; i++) {
       const z = r() < 0.5 ? ZONES.farWalk : ZONES.nearWalk;
-      weeds.push({ x: z.x0 + r() * (z.x1 - z.x0), y: 0.1, z: z.z0 + r() * (z.z1 - z.z0), ry: r() * 6, sy: 0.6 + r() * 0.6, color: pick(['#7e9a3a', '#93a842', '#6f8a33']) });
+      weeds.push({ x: z.x0 + r() * (z.x1 - z.x0), y: 0.1, z: z.z0 + r() * (z.z1 - z.z0), ry: r() * 6, sy: 0.6 + r() * 0.6, color: pick(['#8fb03a', '#a6bf3f', '#7ca236']) });
     }
     g.add(instanced(geo('weed', () => new THREE.ConeGeometry(0.05, 0.22, 4).translate(0, 0.11, 0)), mat('#ffffff'), weeds));
   }
@@ -138,7 +138,7 @@ function buildPaving(type, seed = 3) {
 function buildRoad(fresh) {
   const g = new THREE.Group();
   const { z0, z1 } = ZONES.road;
-  const asphalt = fresh ? '#4f5462' : '#6f727a';
+  const asphalt = fresh ? '#454c63' : '#6c7285';
   box(g, 40, 0.04, z1 - z0, asphalt, { x: 0, y: -0.02, z: (z0 + z1) / 2, cast: false }, 0.01);
   const zm = (z0 + z1) / 2;
   const r = mulberry(9);
@@ -150,7 +150,7 @@ function buildRoad(fresh) {
     for (let i = 0; i < 6; i++) box(g, 0.18, 0.012, z1 - z0 - 0.4, '#fbf8ee', { x: -1.35 - 0.75 + i * 0.3, y: 0.02, z: zm, cast: false }, 0.005);
   } else {
     for (let i = 0; i < 9; i++) {
-      box(g, 0.6 + r() * 1.2, 0.01, 0.4 + r() * 0.6, '#62656d', { x: -6 + r() * 12, y: 0.015, z: z0 + 0.4 + r() * (z1 - z0 - 0.8), ry: r(), cast: false }, 0.01);
+      box(g, 0.6 + r() * 1.2, 0.01, 0.4 + r() * 0.6, '#5e6476', { x: -6 + r() * 12, y: 0.015, z: z0 + 0.4 + r() * (z1 - z0 - 0.8), ry: r(), cast: false }, 0.01);
     }
     for (const [px, pz, s] of [[-2.2, -2.0, 1], [3.4, -3.1, 0.8], [5.4, -1.9, 0.7], [-4.8, -3.3, 0.9]]) {
       const pot = add(g, geo('pot', () => new THREE.CylinderGeometry(0.28, 0.28, 0.03, 18)), mat('#4b4d54'), { x: px, y: 0.01, z: pz, cast: false });
@@ -163,11 +163,11 @@ function buildRoad(fresh) {
 function buildLamp(parent, x, z, side) {
   const g = group(parent, x, 0.12, z);
   const pole = group(g);
-  box(pole, 0.22, 0.12, 0.22, '#2f4a45', { y: 0 }, 0.04);
-  cyl(pole, 0.045, 0.06, 1.85, '#35554f', { y: 0.1 }, 10);
-  box(pole, 0.12, 0.08, 0.42, '#35554f', { y: 1.85, z: 0.15 * -side }, 0.03);
+  box(pole, 0.22, 0.12, 0.22, '#1f6f63', { y: 0 }, 0.04);
+  cyl(pole, 0.045, 0.06, 1.85, '#24806f', { y: 0.1 }, 10);
+  box(pole, 0.12, 0.08, 0.42, '#24806f', { y: 1.85, z: 0.15 * -side }, 0.03);
   const head = group(pole, 0, 1.68, 0.32 * -side);
-  box(head, 0.26, 0.06, 0.26, '#2f4a45', { y: 0.2 }, 0.02);
+  box(head, 0.26, 0.06, 0.26, '#1f6f63', { y: 0.2 }, 0.02);
   const lit = add(head, rbox(0.2, 0.22, 0.2, 0.04), glow('#ffe7a3', 1.3), { y: -0.02 });
   const dark = add(head, rbox(0.2, 0.22, 0.2, 0.04), mat('#5d6266'), { y: -0.02 });
   const halo = makeGlowSprite(1.9, 0.85);
@@ -189,10 +189,10 @@ function deadTree(parent, x, z) {
 function lushTree(parent, x, z, scale = 1) {
   const g = group(parent, x, 0.05, z);
   cyl(g, 0.08 * scale, 0.12 * scale, 1.0 * scale, '#8a6747', {}, 8);
-  sphere(g, 0.55 * scale, '#4fae4a', { y: 1.35 * scale });
-  sphere(g, 0.4 * scale, '#62c257', { x: -0.3 * scale, y: 1.15 * scale, z: 0.2 * scale });
-  sphere(g, 0.38 * scale, '#43a043', { x: 0.32 * scale, y: 1.2 * scale, z: -0.1 * scale });
-  sphere(g, 0.18 * scale, '#7fd06e', { x: -0.18 * scale, y: 1.62 * scale, z: 0.3 * scale });
+  sphere(g, 0.55 * scale, '#3fbf4a', { y: 1.35 * scale });
+  sphere(g, 0.4 * scale, '#5ad35a', { x: -0.3 * scale, y: 1.15 * scale, z: 0.2 * scale });
+  sphere(g, 0.38 * scale, '#2fae45', { x: 0.32 * scale, y: 1.2 * scale, z: -0.1 * scale });
+  sphere(g, 0.18 * scale, '#8ff07a', { x: -0.18 * scale, y: 1.62 * scale, z: 0.3 * scale });
   return g;
 }
 
@@ -216,45 +216,48 @@ export class Street {
   buildBase() {
     const R = this.root;
     // surrounding land
-    box(R, 60, 0.1, 60, '#a9c56e', { x: 0, y: -0.12, z: 0, cast: false }, 0.02);
+    box(R, 60, 0.1, 60, '#86cf52', { x: 0, y: -0.12, z: 0, cast: false }, 0.02);
     // behind the buildings
-    box(R, 40, 0.06, 6, '#9fc46a', { x: 0, y: -0.06, z: -11.5, cast: false }, 0.02);
+    box(R, 40, 0.06, 6, '#7cc84c', { x: 0, y: -0.06, z: -11.5, cast: false }, 0.02);
     const r = mulberry(21);
     for (let i = 0; i < 26; i++) {
       const x = -16 + i * 1.3 + (r() - 0.5) * 0.6, z = -10.2 - r() * 2.4, s = 0.75 + r() * 0.5;
       const t = group(R, x, 0, z);
       cyl(t, 0.08 * s, 0.11 * s, 0.9 * s, '#8a6e55', {}, 6);
-      sphere(t, 0.7 * s, r() < 0.5 ? '#6fbf5a' : '#82cc66', { y: 1.4 * s }, 1, 1.1, 1);
+      sphere(t, 0.7 * s, r() < 0.5 ? '#46c04f' : '#6fd65a', { y: 1.4 * s }, 1, 1.1, 1);
     }
-    for (const [x, z, s, c] of [[-8, -17, 6, '#b9dca8'], [2, -18.5, 7, '#c4e2b4'], [11, -16, 5.5, '#b2d79e']]) {
+    for (const [x, z, s, c] of [[-8, -17, 6, '#9fe08a'], [2, -18.5, 7, '#b4ea9c'], [11, -16, 5.5, '#92d97c']]) {
       sphere(R, 1, c, { x, y: -2.2, z }, s, s * 0.42, s * 0.5).castShadow = false;
     }
     // curbs
-    for (const z of [ZONES.road.z0, ZONES.road.z1]) box(R, 40, 0.16, 0.16, '#c9c3b6', { x: 0, y: 0, z, cast: false }, 0.04);
+    for (const z of [ZONES.road.z0, ZONES.road.z1]) box(R, 40, 0.16, 0.16, '#e6dccb', { x: 0, y: 0, z, cast: false }, 0.04);
     // park ground: dry, patchy grass
     const P = ZONES.park;
-    box(R, P.x1 - P.x0 + 0.2, 0.06, P.z1 - P.z0, '#b2ab6d', { x: 0, y: -0.02, z: (P.z0 + P.z1) / 2, cast: false }, 0.03);
+    this.parkGround = box(R, P.x1 - P.x0 + 0.2, 0.06, P.z1 - P.z0, '#c8b866', { x: 0, y: -0.02, z: (P.z0 + P.z1) / 2, cast: false }, 0.03);
+    this.parkPatches = [];
     for (let i = 0; i < 26; i++) {
-      add(R, geo('patch', () => new THREE.CylinderGeometry(0.4, 0.4, 0.02, 14)), mat(r() < 0.5 ? '#a8936a' : '#9fa564'), { x: P.x0 + r() * (P.x1 - P.x0), y: 0.03, z: P.z0 + r() * (P.z1 - P.z0), cast: false }).scale.set(0.6 + r() * 1.2, 1, 0.5 + r() * 0.8);
+      const patch = add(R, geo('patch', () => new THREE.CylinderGeometry(0.4, 0.4, 0.02, 14)), mat(r() < 0.5 ? '#c09a62' : '#b3b25a'), { x: P.x0 + r() * (P.x1 - P.x0), y: 0.03, z: P.z0 + r() * (P.z1 - P.z0), cast: false });
+      patch.scale.set(0.6 + r() * 1.2, 1, 0.5 + r() * 0.8);
+      this.parkPatches.push(patch);
     }
     // lawn bed edge
     const L = ZONES.lawn;
-    box(R, L.x1 - L.x0 + 0.3, 0.05, L.z1 - L.z0 + 0.3, '#8a7a55', { x: 0, y: 0, z: (L.z0 + L.z1) / 2, cast: false }, 0.05);
+    box(R, L.x1 - L.x0 + 0.3, 0.05, L.z1 - L.z0 + 0.3, '#a2814f', { x: 0, y: 0, z: (L.z0 + L.z1) / 2, cast: false }, 0.05);
     // low hedge-wall around the park front + sides
     this.fence = group(R);
     for (let x = -6.4; x <= 6.41; x += 0.8) {
-      cyl(this.fence, 0.05, 0.05, 0.5, '#8f7c66', { x, y: 0, z: P.z1 - 0.1 }, 6);
+      cyl(this.fence, 0.05, 0.05, 0.5, '#b0855a', { x, y: 0, z: P.z1 - 0.1 }, 6);
     }
-    box(this.fence, 13, 0.07, 0.06, '#8f7c66', { x: 0, y: 0.38, z: P.z1 - 0.1 }, 0.02);
-    box(this.fence, 13, 0.07, 0.06, '#8f7c66', { x: 0, y: 0.16, z: P.z1 - 0.1, rz: 0.02 }, 0.02);
+    box(this.fence, 13, 0.07, 0.06, '#b0855a', { x: 0, y: 0.38, z: P.z1 - 0.1 }, 0.02);
+    box(this.fence, 13, 0.07, 0.06, '#b0855a', { x: 0, y: 0.16, z: P.z1 - 0.1, rz: 0.02 }, 0.02);
   }
 
   buildPark() {
     const R = this.root;
     this.beds = BEDS.map((b, i) => {
       const g = group(R, b.x, 0, b.z);
-      box(g, b.w, 0.14, b.d, '#a58c6a', { y: 0 }, 0.06);
-      box(g, b.w - 0.16, 0.06, b.d - 0.16, '#7b5f45', { y: 0.1 }, 0.04);
+      box(g, b.w, 0.14, b.d, '#c49a6c', { y: 0 }, 0.06);
+      box(g, b.w - 0.16, 0.06, b.d - 0.16, '#8a5f3e', { y: 0.1 }, 0.04);
       const dead = group(g);
       deadTree(dead, 0, 0);
       const r = mulberry(40 + i);
@@ -269,8 +272,8 @@ export class Street {
     // broken bench
     const bench = group(R, 0, 0.04, 6.35);
     for (const x of [-0.55, 0.55]) box(bench, 0.08, 0.32, 0.36, '#4d5552', { x, y: 0 }, 0.02);
-    box(bench, 1.3, 0.05, 0.12, '#a97c52', { y: 0.3, z: 0.1 }, 0.02);
-    box(bench, 0.6, 0.05, 0.12, '#a97c52', { x: -0.33, y: 0.3, z: -0.08, rz: 0.12 }, 0.02);
+    box(bench, 1.3, 0.05, 0.12, '#c98a52', { y: 0.3, z: 0.1 }, 0.02);
+    box(bench, 0.6, 0.05, 0.12, '#c98a52', { x: -0.33, y: 0.3, z: -0.08, rz: 0.12 }, 0.02);
     this.bench = bench;
   }
 
@@ -337,7 +340,7 @@ export class Street {
           if (Math.hypot(x, z + 0.1) < 0.35) continue;
           items.push({ x, y: 0.2 + r() * 0.05, z, color, sx: 1, sy: 1, sz: 1 });
         }
-        const leaves = items.map((it) => ({ ...it, y: 0.14, color: '#4f9e3e', sx: 1.5, sy: 0.8, sz: 1.5 }));
+        const leaves = items.map((it) => ({ ...it, y: 0.14, color: '#3db84a', sx: 1.5, sy: 0.8, sz: 1.5 }));
         const f = new THREE.Group();
         f.add(instanced(geo('leafball', () => new THREE.SphereGeometry(0.09, 10, 8)), mat('#ffffff'), leaves));
         f.add(instanced(geo('flower', () => new THREE.SphereGeometry(0.075, 10, 8)), mat('#ffffff'), items));
@@ -345,6 +348,9 @@ export class Street {
         bed.flowers = f;
       }
     }
+    // landscaping also greens the whole park
+    this.parkGround.material = mat(color ? '#7fcf4f' : '#c8b866');
+    for (const pt of this.parkPatches) pt.visible = !color;
     // the bench gets fixed with the landscaping
     this.bench.children.forEach((c, i) => { if (i === 3) { c.rotation.z = color ? 0 : 0.12; c.position.x = color ? 0 : -0.33; c.scale.x = color ? 2.15 : 1; } });
   }

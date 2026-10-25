@@ -15,8 +15,8 @@
   --coral: #ff6a4a;
   --coral-d: #c23b2a;
   --cream: #fff7ea;
-  --sky-top: #5cb8ff;
-  --sky-bottom: #d9f1ff;
+  --sky-top: #2f9dff;
+  --sky-bottom: #c8f0ff;
   --font: "Lilita One", "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif;
   --safe-t: env(safe-area-inset-top, 0px);
   --safe-b: env(safe-area-inset-bottom, 0px);
@@ -29,7 +29,7 @@
 [hidden] { display: none !important; }
 html, body { margin: 0; height: 100%; overflow: hidden; overscroll-behavior: none; }
 body {
-  background: linear-gradient(180deg, var(--sky-top) 0%, #9ed8ff 45%, var(--sky-bottom) 100%);
+  background: linear-gradient(180deg, var(--sky-top) 0%, #7cc9ff 45%, var(--sky-bottom) 100%);
   font-family: var(--font);
   color: #fff;
   -webkit-user-select: none;

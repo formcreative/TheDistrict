@@ -32,9 +32,9 @@ export class Stage {
     this.camera.position.copy(TARGET).addScaledVector(dir, 60);
     this.camera.lookAt(TARGET);
 
-    const hemi = new THREE.HemisphereLight(0xdff1ff, 0xb9a98a, 1.55);
+    const hemi = new THREE.HemisphereLight(0xcfeaff, 0xc9b27a, 1.7);
     this.scene.add(hemi);
-    const sun = new THREE.DirectionalLight(0xfff0d6, 2.3);
+    const sun = new THREE.DirectionalLight(0xffe9c4, 2.6);
     sun.position.set(-7, 14, 9);
     sun.target.position.set(0, 0, -1);
     sun.castShadow = true;

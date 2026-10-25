@@ -5,8 +5,8 @@ import { ZONES } from './street.js';
 // Instanced grass tufts on the park lawn. Overgrown weeds → cut → regrow as lush lawn.
 
 const SPACING = 0.45;
-const TALL = ['#7d9a35', '#8fa63c', '#a3ac45', '#b7b052'];
-const LUSH = ['#43ad3d', '#52bd45', '#62c94d', '#4fb543'];
+const TALL = ['#8cad35', '#a1b83c', '#b8bf42', '#ccc24c'];
+const LUSH = ['#2fc23f', '#45d24a', '#5ee056', '#3ccb46'];
 
 function tuftGeometry(seed, blades, minH, maxH) {
   const r = mulberry(seed);
@@ -70,7 +70,7 @@ export class Grass {
     this.tufts.forEach((t, i) => {
       this.tall.setColorAt(i, c.set(TALL[t.tint]));
       this.lush.setColorAt(i, c.set(LUSH[t.tint]));
-      this.patches.setColorAt(i, c.set(t.stripe ? '#7fcb55' : '#8ed663'));
+      this.patches.setColorAt(i, c.set(t.stripe ? '#5fd14a' : '#78df5c'));
     });
     this.group = new THREE.Group();
     this.group.add(this.patches, this.tall, this.lush, this.flowers);
