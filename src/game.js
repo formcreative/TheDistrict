@@ -12,6 +12,7 @@ import { Mower } from './scene/mower.js';
 import { group, sphere, cyl, box, geo } from './scene/kit.js';
 import { UI, money, clock, icon } from './ui/ui.js';
 import { ICONS } from './ui/icons.js';
+import { purchase, purchaseMode } from './store.js';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const WALK_Z = -4.3;
@@ -68,6 +69,7 @@ export class Game {
     document.addEventListener('visibilitychange', () => { if (document.hidden) this.persist(); });
     window.addEventListener('pagehide', () => this.persist());
     E.log(this.g, 'session_start', { street: this.streetId });
+    this.openHome(true);
   }
 
   // The save for the street on screen.
@@ -160,6 +162,7 @@ export class Game {
   persist() {
     if (!this.g) return;
     this.s.lawn = this.grass.serialize();
+    this.s.lawnCut = this.grass.serializeCut();
     this.s.lastSeen = Date.now();
     save(this.g);
   }
@@ -167,6 +170,8 @@ export class Game {
   restoreWorld() {
     const s = this.s;
     this.grass.restore(s.lawn);
+    this.grass.restoreCut(s.lawnCut);
+    if (s.lawnRegrowAt && Date.now() >= s.lawnRegrowAt) { this.grass.regrowAll(); s.lawnRegrowAt = null; }
     for (const p of this.cfg.projects) if (s.done[p.id]) this.applyProject(p, false);
     for (const [id, sh] of Object.entries(this.shops)) {
       for (const u of sh.sc.upgrades) if (s.owned[E.upKey(id, u.id)]) this.applyUpgrade(id, u, false);
@@ -428,6 +433,8 @@ export class Game {
       for (let i = 0; i < n; i++) this.fx.coin(t.x, 0.2, t.z, g.coinValue, (xy, v) => this.flyCoin(xy, v), i * 0.05);
     }
     if (weed) this.fx.sparkle(t.x, 0.5, t.z, 4, 0.3);
+    // the lawn grows back all at once, one timer after the first cut
+    if (!this.s.lawnRegrowAt) this.s.lawnRegrowAt = Date.now() + this.base.grass.regrowSeconds * 1000;
     audio.snip();
     this.questEvent('mow');
     this.cutsThisSession++;
@@ -825,12 +832,12 @@ export class Game {
     el.dataset.key = key;
     el.innerHTML = `
       <div class="rush-pill">${icon('clock')}<span>RUSH ${clock(left)}</span>${this.rush.lost ? `<b class="rush-lost">-${money(this.rush.lost)}</b>` : ''}</div>
-      ${showHelper ? `<button class="rush-help" data-act="helper">${icon('barista')}<span>Helpers</span><b>${helper.priceLabel}</b></button>` : ''}`;
+      ${showHelper ? `<button class="rush-help" data-act="helper">${icon('barista')}<span>Helpers</span><b>${this.product('rush_helper').price}</b></button>` : ''}`;
   }
 
   hireHelpers() {
     if (!this.rush) return;
-    this.fakeDoor('helper', 'rush_helper', () => {
+    this.offer('rush_helper', { title: 'Hire rush helpers', sub: 'Every shop serves itself until the rush is over.' }, () => {
       this.rush.helped = true;
       this.helperUntil = this.time + (this.rush.until - this.g.playSeconds);
       for (const sh of Object.values(this.shops)) {
@@ -880,9 +887,12 @@ export class Game {
       this.ui.floater(`Need ${money(p.cost - this.g.cash)} more`, this.anchorScreen(p), 'warn');
       return;
     }
-    if (p.buildSeconds > 0 && E.buildersBusy(s) >= this.base.builders.count) {
+    if (p.buildSeconds > 0 && E.buildersBusy(s) >= this.builderCount()) {
       audio.deny();
-      this.ui.floater('Your builder is busy', this.anchorScreen(p), 'warn');
+      const extra = this.product('builder');
+      if (extra && !this.g.bought?.builder && !this.g.bought?.starter && purchaseMode(this.base) !== 'off') {
+        this.offer('builder', { title: 'Your builder is busy', sub: 'Hire a second builder to work on two projects at once.' }, null, { from: 'busy' });
+      } else this.ui.floater('Your builder is busy', this.anchorScreen(p), 'warn');
       return;
     }
     this.spend(p.cost);
@@ -1092,7 +1102,7 @@ export class Game {
         <div class="modal-title">${label}</div>
         <div class="speed-left">${icon('clock')}<span data-left>${clock(left())}</span> left</div>
         ${ads.enabled ? `<button class="btn btn-blue big ad-btn" data-act="ad">${icon('play')}<span>Watch ad · −${clock(ads.skipSeconds)}</span></button>` : ''}
-        ${paid ? `<button class="btn btn-gold big" data-act="pay">${icon('bolt')}<span>Finish now · ${this.base.monetization.skipPriceLabel}</span></button>` : ''}
+        ${paid ? `<button class="btn btn-gold big" data-act="pay">${icon('bolt')}<span>Finish now · ${this.product('skip_build').price}</span></button>` : ''}
         <button class="btn-link" data-act="no">Keep waiting</button>
       </div>`);
     const tick = setInterval(() => {
@@ -1114,7 +1124,28 @@ export class Game {
     });
     el.querySelector('[data-act="pay"]')?.addEventListener('click', () => {
       this.ui.closeModal();
-      setTimeout(() => this.fakeDoor('skip', b.shop ? E.upKey(b.shop, b.id) : b.id, () => this.finishBuild(b), true), 220);
+      this.buyProduct('skip_build', () => this.finishBuild(b), { item: b.shop ? E.upKey(b.shop, b.id) : b.id });
+    });
+  }
+
+  speedUpGrass() {
+    const s = this.s, ads = this.base.ads;
+    if (!s.lawnRegrowAt) return;
+    E.log(this.g, 'speedup_open', { item: 'grass' });
+    const left = () => Math.max(0, (s.lawnRegrowAt - Date.now()) / 1000);
+    const el = this.ui.openModal(`
+      <div class="fd">
+        <div class="fd-art">${icon('tree', 'xl')}</div>
+        <div class="modal-title">The grass is growing</div>
+        <div class="speed-left">${icon('clock')}<span data-left>${clock(left())}</span> left</div>
+        ${ads.enabled ? `<button class="btn btn-blue big ad-btn" data-act="ad">${icon('play')}<span>Watch ad · grow it now</span></button>` : ''}
+        <button class="btn-link" data-act="no">Keep waiting</button>
+      </div>`);
+    el.querySelector('[data-act="no"]').addEventListener('click', () => this.ui.closeModal());
+    el.querySelector('.modal-scrim').addEventListener('click', () => this.ui.closeModal());
+    el.querySelector('[data-act="ad"]')?.addEventListener('click', () => {
+      this.ui.closeModal();
+      this.playAd(() => { s.lawnRegrowAt = Date.now(); E.log(this.g, 'ad_watched', { item: 'grass' }); });
     });
   }
 
@@ -1136,77 +1167,177 @@ export class Game {
     requestAnimationFrame(step);
   }
 
-  // ---------- fake-door monetization ----------
-  fakeDoor(kind, item, onGrant, skipConfirm = false) {
-    const m = this.base.monetization;
-    if (m.mode === 'off') return;
-    E.log(this.g, 'fake_door_open', { kind, item });
-    const grant = (el) => {
-      E.log(this.g, 'fake_door_tap', { kind, item });
-      audio.fanfare();
-      el.querySelector('.modal-panel').innerHTML = `
-        <div class="fd done">${icon('check', 'xl')}
-          <div class="modal-title">It's yours!</div>
-          <p class="fineprint">This is a test build, so nothing was charged. Your tap tells us this is worth building.</p>
-          <button class="btn btn-green big" data-act="ok">Great</button>
-        </div>`;
-      el.querySelector('[data-act="ok"]').addEventListener('click', () => this.ui.closeModal());
-      onGrant();
-      this.persist();
-    };
-    if (skipConfirm) { grant(this.ui.openModal('<div></div>')); return; }
-    const art = kind === 'cash' ? `${icon('coin', 'xl')}<div class="fd-amt">+${money(m.cashOffer.amount)}</div>` : icon(kind === 'helper' ? 'barista' : 'bolt', 'xl');
-    const title = { cash: 'Cash boost', helper: 'Hire rush helpers', skip: 'Finish now' }[kind];
-    const sub = { helper: 'Every shop serves itself until the rush is over.' }[kind];
-    const priceLabel = kind === 'cash' ? m.cashOffer.priceLabel : kind === 'helper' ? m.rushHelper.priceLabel : m.skipPriceLabel;
-    const el = this.ui.openModal(`
-      <div class="fd">
-        <div class="fd-art">${art}</div>
-        <div class="modal-title">${title}</div>
-        ${sub ? `<p class="fineprint">${sub}</p>` : ''}
-        <button class="btn btn-gold big" data-act="pay">${priceLabel}</button>
-        <button class="btn-link" data-act="no">Not now</button>
-      </div>`);
-    const dismiss = () => { E.log(this.g, 'fake_door_dismiss', { kind, item }); this.ui.closeModal(); };
-    el.querySelector('[data-act="no"]').addEventListener('click', dismiss);
-    el.querySelector('.modal-scrim').addEventListener('click', dismiss);
-    el.querySelector('[data-act="pay"]').addEventListener('click', () => grant(el));
+  // ---------- purchases (test mode on the web, real in-app purchase in the app builds) ----------
+  product(id) { return this.base.store.products.find((p) => p.id === id); }
+
+  builderCount() { return this.base.builders.count + (this.g.extraBuilders || 0); }
+
+  // Apply what a product gives. Cash arrives as a shower of coins.
+  grantProduct(p) {
+    const gr = p.grant || {};
+    if (gr.builders) this.g.extraBuilders = (this.g.extraBuilders || 0) + gr.builders;
+    if (gr.cash) {
+      const from = { x: this.stage.width / 2, y: this.stage.height * 0.55 };
+      const n = 12;
+      for (let i = 0; i < n; i++) this.flyCoin({ x: from.x + (Math.random() - 0.5) * 140, y: from.y + (Math.random() - 0.5) * 90 }, gr.cash / n, i * 40);
+    }
+    if (p.oneTime) (this.g.bought ||= {})[p.id] = true;
   }
 
-  // ---------- city map ----------
-  openMap() {
+  async buyProduct(id, onGrant, meta = {}) {
+    const p = this.product(id);
+    if (!p) return;
+    E.log(this.g, 'purchase_start', { product: id, ...meta });
+    const res = await purchase(this.base, id);
+    if (!res.ok) {
+      E.log(this.g, res.cancelled ? 'purchase_cancel' : 'purchase_fail', { product: id, reason: res.reason });
+      if (res.reason) this.ui.toast('NOT PURCHASED', res.reason);
+      return false;
+    }
+    E.log(this.g, 'purchase', { product: id, price: p.price, test: !!res.test, ...meta });
+    this.grantProduct(p);
+    onGrant?.();
+    audio.fanfare();
+    this.ui.toast('PURCHASE COMPLETE', p.title);
+    this.persist();
+    return true;
+  }
+
+  // An offer shown in the middle of play (rush helpers, cash boost): explain it, then buy.
+  offer(id, { title, sub, art }, onGrant, meta = {}) {
+    const p = this.product(id);
+    if (!p || purchaseMode(this.base) === 'off') return;
+    E.log(this.g, 'offer_open', { product: id, ...meta });
+    const el = this.ui.openModal(`
+      <div class="fd">
+        <div class="fd-art">${art || icon(p.icon, 'xl')}</div>
+        <div class="modal-title">${title || p.title}</div>
+        ${sub ? `<p class="fineprint">${sub}</p>` : ''}
+        <button class="btn btn-gold big" data-act="pay">${p.price}</button>
+        <button class="btn-link" data-act="no">Not now</button>
+      </div>`);
+    const dismiss = () => { E.log(this.g, 'offer_dismiss', { product: id, ...meta }); this.ui.closeModal(); };
+    el.querySelector('[data-act="no"]').addEventListener('click', dismiss);
+    el.querySelector('.modal-scrim').addEventListener('click', dismiss);
+    el.querySelector('[data-act="pay"]').addEventListener('click', async (e) => {
+      e.currentTarget.disabled = true;
+      e.currentTarget.textContent = '…';
+      this.ui.closeModal();
+      await this.buyProduct(id, onGrant, meta);
+    });
+  }
+
+  openStore() {
     audio.tap();
-    this.root.querySelector('#map-btn').classList.remove('hint');
-    const g = this.g;
-    const cities = this.base.cities.map((c) => {
-      if (c.comingSoon) {
-        return `<div class="city city-${c.theme} locked"><div class="city-head">${icon(c.icon)}<span>${c.title}</span>${icon('lock')}</div><div class="city-note">${c.unlockText || 'Coming soon'}</div></div>`;
-      }
-      const streets = c.streets.map((st) => {
-        const ss = g.streets[st.id];
-        const total = st.projects.filter((p) => p.type !== 'unlock').length;
-        const done = ss ? st.projects.filter((p) => p.type !== 'unlock' && ss.done[p.id]).length : 0;
-        const here = st.id === this.streetId;
-        const reg = ss ? Object.values(ss.registers || {}).reduce((a, b) => a + b, 0) : 0;
-        if (!ss) return `<div class="street-card locked">${icon('lock')}<div class="sc-body"><div class="sc-title">${st.title}</div><div class="sc-sub">Unlock it from the street before</div></div></div>`;
-        return `<button class="street-card ${here ? 'here' : ''}" data-street="${st.id}">
-          <div class="sc-body"><div class="sc-title">${st.title}</div>
-            <div class="bar sm"><i style="width:${(100 * done) / total}%"></i></div>
-            <div class="sc-sub">${here ? 'You are here' : reg >= 1 ? `${money(reg)} waiting in registers` : `${done}/${total} restored`}</div></div>
-          ${here ? icon('check') : `<span class="sc-go">Go</span>`}
-        </button>`;
-      }).join('');
-      return `<div class="city city-${c.theme}"><div class="city-head">${icon(c.icon)}<span>${c.title}</span></div>${streets}
-        <div class="street-card soon">${icon('lock')}<div class="sc-body"><div class="sc-title">More streets</div><div class="sc-sub">Coming soon</div></div></div></div>`;
-    }).join('');
+    E.log(this.g, 'store_open');
+    const test = purchaseMode(this.base) === 'test';
+    const items = this.base.store.products.filter((p) => !p.hidden);
+    const packs = items.filter((p) => p.grant?.cash && !p.oneTime);
+    const specials = items.filter((p) => !(p.grant?.cash && !p.oneTime));
+    // the starter pack and the second builder both give the extra builder, so owning either covers both
+    const owned = (p) => p.oneTime && (this.g.bought?.[p.id] || (p.grant?.builders && (this.g.extraBuilders || 0) >= p.grant.builders));
     const el = this.ui.openSheet(`
-      <div class="sheet-head"><div class="sheet-title">${icon('map')} Your city</div><button class="x" data-close aria-label="Close">${icon('close')}</button></div>
-      <div class="cities">${cities}</div>`);
-    el.querySelectorAll('[data-street]').forEach((b) => b.addEventListener('click', () => {
-      const id = b.dataset.street;
-      this.ui.closeSheet();
-      if (id !== this.streetId) setTimeout(() => this.travel(id), 220);
+      <div class="sheet-head"><div class="sheet-title">${icon('coin')} Store</div><button class="x" data-close aria-label="Close">${icon('close')}</button></div>
+      <div class="packs">${packs.map((p, i) => `
+        <button class="pack" data-buy="${p.id}">
+          ${p.tag ? `<span class="pack-tag">${p.tag}</span>` : ''}
+          <span class="pack-art">${Array.from({ length: i + 1 }, () => icon('coin')).join('')}</span>
+          <span class="pack-amt">${money(p.grant.cash)}</span>
+          <span class="pack-price">${p.price}</span>
+        </button>`).join('')}</div>
+      <div class="up-list">${specials.map((p) => `
+        <div class="up-row ${owned(p) ? 'is-owned' : ''}">
+          <div class="up-icon">${icon(p.icon)}</div>
+          <div class="up-text"><div class="up-title">${p.title}${p.tag && !owned(p) ? ` <span class="chip sm">${p.tag}</span>` : ''}</div><div class="up-effect">${p.desc || ''}</div></div>
+          ${owned(p) ? `<span class="owned">${icon('check')}</span>` : `<button class="btn btn-gold sm" data-buy="${p.id}"><span>${p.price}</span></button>`}
+        </div>`).join('')}</div>
+      ${test ? '<p class="store-note">Test mode: purchases are free in this prototype. The App Store and Google Play versions charge real money.</p>' : ''}`);
+    el.querySelectorAll('[data-buy]').forEach((b) => b.addEventListener('click', async () => {
+      b.disabled = true;
+      const ok = await this.buyProduct(b.dataset.buy, null, { where: 'store' });
+      if (ok) { this.ui.closeSheet(); }
+      else b.disabled = false;
     }));
+  }
+
+  // ---------- districts (home screen) ----------
+  cityProgress(city) {
+    let total = 0, done = 0;
+    for (const st of city.streets || []) {
+      const ss = this.g.streets[st.id];
+      for (const p of st.projects) {
+        if (p.type === 'unlock') continue;
+        total++;
+        if (ss?.done[p.id]) done++;
+      }
+    }
+    return { total, done, complete: total > 0 && done === total };
+  }
+
+  // A district opens once every project in the district before it is finished.
+  cityUnlocked(i) {
+    if (i === 0) return true;
+    const prev = this.base.cities[i - 1];
+    return this.cityProgress(prev).complete;
+  }
+
+  openHome(first = false) {
+    const home = this.root.querySelector('#home');
+    const g = this.g;
+    const here = this.cityOf(this.streetId);
+    const cards = this.base.cities.map((c, i) => {
+      const unlocked = this.cityUnlocked(i);
+      const art = { traditional: ['cup', 'flower', 'croissant'], futuristic: ['bolt', 'star', 'play'], ranch: ['tree', 'flower', 'star'] }[c.theme] || ['star'];
+      if (!unlocked || c.comingSoon) {
+        const why = !unlocked ? `Finish ${this.base.cities[i - 1].title} to unlock` : 'Coming soon';
+        return `<div class="district d-${c.theme} locked">
+          <div class="d-art">${art.map((a) => icon(a)).join('')}</div>
+          <div class="d-body"><div class="d-title">${c.title}</div><div class="d-sub">${why}</div></div>
+          <span class="d-lock">${icon('lock')}</span>
+        </div>`;
+      }
+      const pr = this.cityProgress(c);
+      const streets = c.streets.map((st) => {
+        const open = !!g.streets[st.id];
+        const cur = st.id === this.streetId;
+        return `<button class="d-street ${cur ? 'here' : ''} ${open ? '' : 'locked'}" ${open ? `data-street="${st.id}"` : 'disabled'}>${open ? '' : icon('lock')}<span>${st.title}</span>${cur ? '<i>You are here</i>' : ''}</button>`;
+      }).join('');
+      return `<div class="district d-${c.theme} ${c.id === here?.id ? 'current' : ''}">
+        <div class="d-art">${art.map((a) => icon(a)).join('')}</div>
+        <div class="d-body">
+          <div class="d-title">${c.title}</div>
+          <div class="bar"><i style="width:${(100 * pr.done) / pr.total}%"></i></div>
+          <div class="d-sub">${Math.round((100 * pr.done) / pr.total)}% restored</div>
+          <div class="d-streets">${streets}</div>
+        </div>
+        <button class="btn btn-green big d-play" data-city="${c.id}">${first ? 'PLAY' : 'ENTER'}</button>
+      </div>`;
+    }).join('');
+    home.innerHTML = `
+      <div class="home-inner">
+        <div class="home-logo">Street<br>Story</div>
+        <div class="home-where">${icon('map')}<span>You are in <b>${here.title} · ${this.cfg.street.title}</b></span></div>
+        <div class="districts">${cards}</div>
+        ${first ? '' : `<button class="btn-link home-close" data-act="close">Back to ${this.cfg.street.title}</button>`}
+      </div>`;
+    home.hidden = false;
+    requestAnimationFrame(() => home.classList.add('open'));
+    const close = () => { home.classList.remove('open'); setTimeout(() => { home.hidden = true; }, 300); };
+    home.querySelectorAll('[data-street]').forEach((b) => b.addEventListener('click', () => {
+      audio.unlock(); audio.tap();
+      close();
+      if (b.dataset.street !== this.streetId) setTimeout(() => this.travel(b.dataset.street), 200);
+    }));
+    home.querySelectorAll('[data-city]').forEach((b) => b.addEventListener('click', () => {
+      audio.unlock(); audio.tap();
+      const city = this.base.cities.find((c) => c.id === b.dataset.city);
+      close();
+      const target = city.streets.some((s) => s.id === this.streetId) ? this.streetId : city.streets.find((s) => g.streets[s.id])?.id || city.streets[0].id;
+      if (target !== this.streetId) setTimeout(() => this.travel(target), 200);
+      E.log(g, 'enter_district', { city: city.id });
+    }));
+    home.querySelector('[data-act="close"]')?.addEventListener('click', () => { audio.tap(); close(); });
+    this.root.querySelector('#map-btn').classList.remove('hint');
   }
 
   // ---------- UI: HUD, tiles, anchors, sheets ----------
@@ -1215,7 +1346,8 @@ export class Game {
     r.querySelector('#map-btn').innerHTML = ICONS.map;
     r.querySelector('#quest-btn').insertAdjacentHTML('afterbegin', ICONS.quest);
     r.querySelector('#settings-btn').addEventListener('click', () => this.openSettings());
-    r.querySelector('#map-btn').addEventListener('click', () => this.openMap());
+    r.querySelector('#map-btn').addEventListener('click', () => this.openHome());
+    r.querySelector('#store-btn').addEventListener('click', () => this.openStore());
     r.querySelector('#quest-btn').addEventListener('click', () => this.openQuests());
     r.querySelector('#zoom-in').addEventListener('click', () => this.zoomTo(this.zoom.level + 1));
     r.querySelector('#zoom-out').addEventListener('click', () => this.zoomTo(this.zoom.level - 1));
@@ -1234,7 +1366,7 @@ export class Game {
     const r = this.root;
     const started = this.openShops().length > 0 || Object.keys(this.g.streets).length > 1;
     r.querySelector('#quest-btn').hidden = !started;
-    r.querySelector('#map-btn').hidden = !started;
+    r.querySelector('#map-btn').hidden = false;
     const ready = this.g.quests.filter((q) => q.progress >= q.n).length;
     const badge = r.querySelector('#quest-btn .badge');
     badge.textContent = ready || '';
@@ -1257,11 +1389,8 @@ export class Game {
   cashOffer() {
     const m = this.base.monetization;
     const hook = E.availableProjects(this.cfg, this.s).find((p) => p.hook);
-    this.fakeDoor('cash', `${hook?.id || 'cash'}_${m.cashOffer.amount}`, () => {
-      const amt = m.cashOffer.amount;
-      const from = { x: this.stage.width / 2, y: this.stage.height * 0.55 };
-      for (let i = 0; i < 10; i++) this.flyCoin({ x: from.x + (Math.random() - 0.5) * 120, y: from.y + (Math.random() - 0.5) * 80 }, amt / 10, i * 40);
-    });
+    const p = this.product('cash_boost');
+    this.offer('cash_boost', { title: 'Cash boost', art: `${icon('coin', 'xl')}<div class="fd-amt">+${money(p.grant.cash)}</div>` }, null, { hook: hook?.id });
   }
 
   openChoice(p, onPick) {
@@ -1317,7 +1446,8 @@ export class Game {
     const count = (type) => ev.filter((e) => e.type === type).length;
     const fmt = (t) => (t === undefined ? '—' : `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`);
     const hookSeen = find('hook_seen'), hookBought = find('hook_bought');
-    const taps = ev.filter((e) => e.type === 'fake_door_tap');
+    const taps = ev.filter((e) => e.type === 'purchase');
+    const revenue = taps.reduce((a, e) => a + (parseFloat(String(e.price || '').replace(/[^0-9.]/g, '')) || 0), 0);
     return {
       playTime: fmt(g.playSeconds),
       earned: Math.floor(g.earned),
@@ -1333,10 +1463,12 @@ export class Game {
       adsWatched: count('ad_watched'),
       vipsServed: count('vip_served'),
       goalsClaimed: count('quest_claim'),
-      firstPaidTapAt: fmt(taps[0]?.t),
-      paidTaps: taps.length,
-      paidDismissed: count('fake_door_dismiss'),
-      paidTapItems: taps.map((e) => `${e.kind}:${e.item}`),
+      firstPurchaseAt: fmt(taps[0]?.t),
+      purchases: taps.length,
+      wouldBeRevenue: `$${revenue.toFixed(2)}`,
+      offersDismissed: count('offer_dismiss'),
+      storeOpened: count('store_open'),
+      purchasedItems: taps.map((e) => e.product),
     };
   }
 
@@ -1347,7 +1479,7 @@ export class Game {
       ['Streets unlocked', st.streets], ['Bought café at', st.cafeBoughtAt], ['Pressure started at', st.pressureAt],
       ['Bakery appeared at', st.bakeryCardAt], ['Bought bakery at', st.bakeryBoughtAt], ['Waited for bakery', st.waitedForBakery],
       ['Opened speed-up', st.speedupOpened], ['Ads watched', st.adsWatched], ['VIPs served', st.vipsServed], ['Goals claimed', st.goalsClaimed],
-      ['First $0.99 tap at', st.firstPaidTapAt], ['$0.99 taps', st.paidTaps], ['$0.99 dismissed', st.paidDismissed],
+      ['Store opened', st.storeOpened], ['First purchase at', st.firstPurchaseAt], ['Purchases', st.purchases], ['Would-be revenue', st.wouldBeRevenue], ['Offers dismissed', st.offersDismissed],
     ];
     const el = this.ui.openSheet(`
       <div class="sheet-head"><div class="sheet-title">Playtest stats</div><button class="x" data-close aria-label="Close">${icon('close')}</button></div>
@@ -1429,7 +1561,7 @@ export class Game {
     }
     const m = this.base.monetization;
     const offer = hook && this.paidOffersOn() && m.cashOffer.enabled && g.cash < hook.cost && g.cash >= hook.cost * m.cashOffer.showWhenCashFraction;
-    const busy = E.buildersBusy(s) >= this.base.builders.count;
+    const busy = E.buildersBusy(s) >= this.builderCount();
     const state = (p) => {
       if (s.builds.some((b) => b.kind === 'project' && b.id === p.id)) return 'build';
       if (p.type === 'task') return 'task';
@@ -1438,7 +1570,7 @@ export class Game {
     };
     const key = list.map((p) => `${p.id}:${state(p)}`).join(',') + `|${offer ? 1 : 0}`;
     this.ui.setCard(key, `
-      ${offer ? `<button class="offer" data-act="offer">${icon('coin')}<span>+${money(m.cashOffer.amount)}</span><b>${m.cashOffer.priceLabel}</b></button>` : ''}
+      ${offer ? `<button class="offer" data-act="offer">${icon('coin')}<span>+${money(this.product('cash_boost').grant.cash)}</span><b>${this.product('cash_boost').price}</b></button>` : ''}
       <div class="tiles">${list.map((p) => {
         const st = state(p);
         const foot = st === 'build' ? `${icon('clock')}<span class="tl"></span>`
@@ -1539,6 +1671,13 @@ export class Game {
         () => this.vip.p.headWorld().add(V(0, 0.5, 0)), { onTap: () => this.serveVip(), cls: 'center-bottom', vars: { '--pat': pat.toFixed(3) } });
     }
 
+    // lawn regrowth timer
+    if (s.lawnRegrowAt && this.grass.cutCount() > 0) {
+      const left = (s.lawnRegrowAt - Date.now()) / 1000;
+      ui.anchor('grass', `<div class="timer grass-timer">${icon('tree')}<span>${clock(left)}</span><b class="skip">${icon('play')}</b></div>`,
+        () => V(0, 0.2, ZONES.lawn.z1 + 0.35), { onTap: () => this.speedUpGrass(), cls: 'center-bottom' });
+    }
+
     // street project build timers
     for (const b of s.builds) {
       if (b.kind !== 'project') continue;
@@ -1573,7 +1712,14 @@ export class Game {
     g.playSeconds += dt;
     this.time += dt;
     this.stage.update(dtReal);
-    this.grass.update(dt, this.base.grass.regrowSeconds);
+    this.grass.update(dt);
+    if (this.s.lawnRegrowAt && Date.now() >= this.s.lawnRegrowAt) {
+      this.s.lawnRegrowAt = null;
+      if (this.grass.regrowAll()) {
+        this.ui.floater('The grass grew back!', this.stage.toScreen(V(0, 0.6, 3.2)), 'praise small');
+        audio.chime();
+      }
+    }
     this.street.update(dt);
     for (const b of Object.values(this.buildings)) b.update(dt, this.time);
     this.fx.update(dt);

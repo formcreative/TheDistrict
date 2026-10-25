@@ -68,18 +68,22 @@ npm run android          # same, opens Android Studio
 
 ---
 
-## Stage 5: Real purchases (replacing the fake doors)
+## Stage 5: Real purchases
 
-The fake-door buttons **must not ship** in a store build. They look like purchases but aren't, which breaks Apple's and Google's rules. Before submitting, either set `monetization.mode` to `"off"` or wire in real in-app purchases:
+The game already calls one function for every purchase: `purchase()` in `src/store.js`. In the web prototype (`monetization.mode: "test"`) it succeeds for free. Inside the app it switches to real purchases automatically. You need to:
 
 1. Sign the **Paid Apps agreement** and add banking and tax details (App Store Connect → Agreements), and set up a **payments profile** in Play Console.
-2. Create **consumable** products in both stores with the same IDs, for example:
-   - `skip_build` — $0.99, finishes the current timer
-   - `cash_1000` — $0.99, +$1,000 in-game cash
-3. Add a purchases plugin. [RevenueCat](https://www.revenuecat.com) (`@revenuecat/purchases-capacitor`) handles both stores and receipt validation, and is free up to a revenue threshold.
-4. In `src/game.js`, `fakeDoor()` already has the hook: replace the "It's yours!" grant with the plugin's purchase call, and grant only on success.
-5. Test with **Sandbox testers** (Apple) and **License testers** (Google). No real money changes hands.
-6. Fees: Apple and Google keep 15% under their small-business programs (under $1M a year), 30% above that.
+2. In **both** stores, create the in-app products with the **same ids as `store.products` in `config/game.json`**:
+   - consumable: `cash_small`, `cash_medium`, `cash_large`, `skip_build`, `rush_helper`, `cash_boost`
+   - non-consumable: `starter`, `builder`
+   Set the store prices to match the config's `price` labels, or better, show the price the store returns (see step 5).
+3. Install RevenueCat: `npm install @revenuecat/purchases-capacitor`, create a RevenueCat project, add both apps, and call `Purchases.configure({ apiKey })` once at startup (in `src/main.js`). RevenueCat handles receipts for both stores.
+4. Set `monetization.mode` to `"live"` for store builds. On a phone, the app also detects Capacitor and goes live on its own.
+5. Before submitting, replace the hard-coded price labels with the localized price from `Purchases.getProducts()`. Apple rejects apps that show a different price than the store charges.
+6. Test with **Sandbox testers** (Apple) and **License testers** (Google). No real money changes hands.
+7. Add a **Restore purchases** button in Settings for the non-consumables (`starter`, `builder`). Apple requires it.
+8. Rewarded ads (the "Watch ad" buttons): add AdMob or AppLovin MAX through their Capacitor plugin and replace `playAd()` in `src/game.js`. Grant the reward only in the ad's "reward earned" callback.
+9. Fees: Apple and Google keep 15% under their small-business programs (under $1M a year), 30% above that.
 
 While you're here, swap `localStorage` saves for `@capacitor/preferences` so the OS can't clear progress.
 
@@ -106,7 +110,8 @@ While you're here, swap `localStorage` saves for `@capacitor/preferences` so the
 - [ ] Final game name chosen, store names checked for availability
 - [ ] App icon, splash, screenshots
 - [ ] Privacy policy + support page
-- [ ] Real IAP wired (or `monetization.mode: "off"`)
+- [ ] RevenueCat wired, products created in both stores with matching ids, `monetization.mode: "live"`
+- [ ] Restore purchases button; rewarded-ad SDK in place of the placeholder
 - [ ] Saves moved to `@capacitor/preferences`
 - [ ] Tested on an older Android phone and an iPhone
 - [ ] TestFlight + Play internal test with 10+ people

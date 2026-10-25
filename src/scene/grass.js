@@ -120,13 +120,30 @@ export class Grass {
     }
   }
 
-  update(dt, regrowSeconds) {
+  // The whole lawn grows back together on one timer (owned by the game, shown over the lawn).
+  regrowAll() {
+    let n = 0;
+    for (const t of this.tufts) {
+      if (t.state === 'cut') { t.state = 'growing'; t.growT = -Math.random() * 0.6; t.lush = true; n++; }
+    }
+    return n;
+  }
+
+  cutCount() { return this.tufts.filter((t) => t.state === 'cut').length; }
+
+  serializeCut() { return this.tufts.map((t) => (t.state === 'cut' ? '1' : '0')).join(''); }
+
+  restoreCut(str) {
+    if (!str || str.length !== this.tufts.length) return;
+    this.tufts.forEach((t, i) => { if (str[i] === '1') { t.state = 'cut'; t.grow = 0; t.everCut = true; t.patch = 1; } });
+  }
+
+  update(dt) {
     this.time += dt;
     for (const t of this.tufts) {
-      if (t.state === 'cut' && this.time - t.cutAt > regrowSeconds) { t.state = 'growing'; t.growT = 0; t.lush = true; }
       if (t.state === 'growing') {
         t.growT += dt;
-        const k = Math.min(1, t.growT / 0.45);
+        const k = Math.max(0, Math.min(1, t.growT / 0.45));
         t.grow = easeOutBack(k);
         if (k >= 1) { t.state = 'tall'; t.grow = 1; }
       }
