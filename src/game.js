@@ -191,7 +191,9 @@ export class Game {
         // second finger: switch from mowing to pinch-zoom
         this.mower.stop();
         const [a, b] = [...this.pointers.values()];
-        this.pinch = { d0: Math.hypot(a.x - b.x, a.y - b.y), done: false };
+        this.pinch = { d0: Math.hypot(a.x - b.x, a.y - b.y), done: false, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2, t: performance.now(), vx: 0, vy: 0 };
+        this.stage.dragging = true;
+        this.stage.fling = null;
         this.pointer = null;
         return;
       }
@@ -204,10 +206,22 @@ export class Game {
     canvas.addEventListener('pointermove', (e) => {
       if (this.pointers.has(e.pointerId)) this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (this.pinch && this.pointers.size === 2) {
-        const [a, b] = [...this.pointers.values()];
-        const ratio = Math.hypot(a.x - b.x, a.y - b.y) / this.pinch.d0;
-        if (!this.pinch.done && ratio > 1.3) { this.pinch.done = true; this.zoomTo(this.zoom.level + 1, this.shopNearScreen((a.x + b.x) / 2)); }
-        if (!this.pinch.done && ratio < 0.75) { this.pinch.done = true; this.zoomTo(this.zoom.level - 1); }
+        const pz = this.pinch, [a, b] = [...this.pointers.values()];
+        // two fingers together: move around the street (when zoomed in)…
+        const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2, dx = mx - pz.mx, dy = my - pz.my;
+        pz.mx = mx; pz.my = my;
+        if (this.zoom.level) {
+          this.stage.panBy(dx, dy);
+          this.followView();
+          const now = performance.now(), dtm = Math.max(1, now - pz.t);
+          pz.vx = pz.vx * 0.6 + (dx / dtm) * 1000 * 0.4;
+          pz.vy = pz.vy * 0.6 + (dy / dtm) * 1000 * 0.4;
+          pz.t = now;
+        }
+        // …two fingers apart or together: zoom
+        const ratio = Math.hypot(a.x - b.x, a.y - b.y) / pz.d0;
+        if (!pz.done && ratio > 1.3) { pz.done = true; this.zoomTo(this.zoom.level + 1, this.shopNearScreen(mx)); }
+        if (!pz.done && ratio < 0.75) { pz.done = true; this.zoomTo(this.zoom.level - 1); }
         return;
       }
       const p = this.pointer;
@@ -243,7 +257,15 @@ export class Game {
     });
     const end = (e) => {
       this.pointers.delete(e.pointerId);
-      if (this.pinch) { if (this.pointers.size === 0) this.pinch = null; return; }
+      if (this.pinch) {
+        if (this.pointers.size < 2 && !this.pinch.ended) {
+          this.pinch.ended = true;
+          this.stage.dragging = false;
+          if (this.zoom.level && performance.now() - this.pinch.t < 80 && Math.hypot(this.pinch.vx, this.pinch.vy) > 150) this.stage.fling = { x: this.pinch.vx, y: this.pinch.vy };
+        }
+        if (this.pointers.size === 0) this.pinch = null;
+        return;
+      }
       const p = this.pointer;
       if (!p || p.id !== e.pointerId) return;
       if (p.panning) {
