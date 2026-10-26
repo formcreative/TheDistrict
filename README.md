@@ -17,7 +17,7 @@ There's no build step and nothing to install for the web version. Three.js and t
 1. **Mow**: swipe across the lawn. Overgrown tufts take two passes, so you swipe back and forth. Grass flies and coins pop out. The lawn pays about $100, enough for the café. Regrown lawn only pays a quarter per tuft, so mowing never becomes the real income.
 2. **Buy the café** ($100): boards fly off, the sign flickers on, customers arrive.
 3. **Serve**: a customer shows an order bubble. Tap the shop to make the order, then tap again to hand it over.
-4. **Zoom in to work a shop**: use the magnifier buttons, a pinch, or a double-tap on a shop. There are two zoom levels. While zoomed, drag with two fingers to move left, right, up and down the street (a flick keeps it gliding). A one-finger drag off the lawn also works, which helps with a mouse. The arrows jump straight to the next shop. A drag that starts on the lawn still mows, even zoomed in.
+4. **Zoom in to work a shop**: the camera swings from the top view down to an angled view of the shop front. Use the magnifier buttons, a pinch, or a double-tap on a shop. There are two zoom levels. While zoomed, drag with two fingers to move left, right, up and down the street (a flick keeps it gliding). A one-finger drag off the lawn also works, which helps with a mouse. The arrows jump straight to the next shop. A drag that starts on the lawn still mows, even zoomed in.
 5. **Run several shops at once**: the bottom row shows every opportunity you can take on right now (Flower Shop, New sidewalk, trash…), not one at a time. Each shop has its own customers and its own upgrades (green arrow above it). That spreads your money and your attention.
 6. **Restore the street**: sidewalk (*choose cobblestone, limestone or brick*), landscaping (*choose pink, blue or white*), streetlights, then the glowing **bakery**.
 
@@ -89,7 +89,7 @@ With the current config and **no** timer skips, the bakery unlocks at about 22 m
 | `config/game.json` | Economy and content data |
 | `src/economy.js` | Pure pricing rules, shared by the game and the simulator |
 | `src/game.js` | Game flow: input, zoom, shop service, projects, upgrades, builds, rush hours, fake doors, stats |
-| `src/scene/stage.js` | Renderer, top-down camera (angle set in `config.camera`) that fits any phone, lighting |
+| `src/scene/stage.js` | Renderer, top-down camera that tilts to an angled close-up when zoomed (angles in `config.camera`), lighting |
 | `src/scene/street.js` | Road, sidewalks and the four paving styles, lamps, park beds, trash |
 | `src/scene/buildings.js` | Shops with neglected and restored looks, the restore animation, the hook beam |
 | `src/scene/grass.js` | Instanced grass, cutting, regrowth, mowed-lawn patches |

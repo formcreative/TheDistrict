@@ -263,10 +263,16 @@ export class Game {
     this.applyZoom(false);
   }
 
+  // Close-ups lean from the top view into an angled look at the shop front.
+  zoomPitch(level) {
+    const zp = this.cfg.camera?.zoomPitch;
+    return Array.isArray(zp) ? zp[Math.min(level, zp.length) - 1] : undefined;
+  }
+
   applyZoom(instant) {
     const z = this.zoom;
     const shopOk = z.shop && this.buildings[z.shop];
-    this.stage.setFocus(z.level && shopOk ? shopView(this.shopX(z.shop), z.level) : STREET_VIEW, instant);
+    this.stage.setFocus(z.level && shopOk ? shopView(this.shopX(z.shop), z.level, this.zoomPitch(z.level)) : STREET_VIEW, instant);
     this.root.classList.toggle('zoomed', z.level > 0);
     const label = this.root.querySelector('#zoom-label');
     if (label) label.textContent = z.level && shopOk ? this.cfg.shops[z.shop].title : '';

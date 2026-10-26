@@ -2,9 +2,10 @@
   "_readme": "All economy and content numbers live here. Edit and reload; no rebuild needed. Money is in whole dollars, times in seconds.",
   "startCash": 0,
   "camera": {
-    "_note": "pitch: 90 = straight down; lower shows more of the shop fronts. yaw: 0 = square to the street.",
+    "_note": "pitch: 90 = straight down; lower shows more of the shop fronts. yaw: 0 = square to the street. zoomPitch: the angled view for zoom levels 1 and 2.",
     "pitch": 68,
-    "yaw": 0
+    "yaw": 0,
+    "zoomPitch": [44, 36]
   },
   "grass": {
     "_note": "Each overgrown tuft takes `passes` swipes. Once you mow, the lawn grows back all at once after `regrowSeconds` (timer shown over the lawn); regrown lawn pays `regrownValue` per tuft.",

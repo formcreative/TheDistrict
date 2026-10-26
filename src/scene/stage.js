@@ -1,15 +1,16 @@
 import * as THREE from 'three';
 
-// Renderer, elevated three-quarter camera, lighting, and screen <-> world helpers.
+// Renderer, top-down street camera that tilts to an angled view on close-ups, lighting, and screen <-> world helpers.
 
 // The whole street, and close-ups around a single shop front (two zoom levels).
 const STREET_VIEW = { box: new THREE.Box3(new THREE.Vector3(-4.1, 0, -8.0), new THREE.Vector3(4.1, 3.2, 7.3)) };
-export function shopView(x, level) {
+// `pitch` (degrees) is the camera angle for that close-up; the street view uses the base pitch.
+export function shopView(x, level, pitch) {
   const half = level >= 2 ? 1.25 : 1.85;
   const box = level >= 2
     ? new THREE.Box3(new THREE.Vector3(x - half, 0, -5.8), new THREE.Vector3(x + half, 1.9, -3.5))
-    : new THREE.Box3(new THREE.Vector3(x - half, 0, -6.4), new THREE.Vector3(x + half, 2.3, -2.9));
-  return { box, center: true };
+    : new THREE.Box3(new THREE.Vector3(x - half, 0, -7.2), new THREE.Vector3(x + half, 3.0, -3.3));
+  return { box, center: true, pitch };
 }
 export { STREET_VIEW };
 // How far a zoomed-in player can drag: the whole street plus the boutique lot and the park fence.
@@ -19,8 +20,8 @@ const TARGET = new THREE.Vector3(0, 0, -1);
 export class Stage {
   // pitch: 90 = straight down, lower = more of the shop fronts. yaw: 0 = square to the street.
   constructor(canvas, { pitch = 68, yaw = 0 } = {}) {
-    const PITCH = THREE.MathUtils.degToRad(Math.min(90, pitch));
-    const YAW = THREE.MathUtils.degToRad(yaw);
+    this.basePitch = Math.min(90, pitch);
+    this.yaw = yaw;
     this.canvas = canvas;
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -31,10 +32,7 @@ export class Stage {
 
     this.scene = new THREE.Scene();
     this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 200);
-    const dir = new THREE.Vector3(Math.sin(YAW) * Math.cos(PITCH), Math.sin(PITCH), Math.cos(YAW) * Math.cos(PITCH));
-    this.camera.position.copy(TARGET).addScaledVector(dir, 60);
-    if (pitch >= 89) this.camera.up.set(Math.sin(YAW), 0, -Math.cos(YAW)); // looking straight down: keep the street's far side at the top
-    this.camera.lookAt(TARGET);
+    this.orient(this.basePitch);
 
     const hemi = new THREE.HemisphereLight(0xcfeaff, 0xc9b27a, 1.7);
     this.scene.add(hemi);
@@ -55,6 +53,19 @@ export class Stage {
     this.uiBottom = 0;
     this.uiTop = 0;
     this.resize();
+  }
+
+  // Swing the camera around the street centre to `pitch` degrees.
+  orient(pitch) {
+    this.pitch = pitch;
+    const P = THREE.MathUtils.degToRad(pitch), Y = THREE.MathUtils.degToRad(this.yaw);
+    const dir = new THREE.Vector3(Math.sin(Y) * Math.cos(P), Math.sin(P), Math.cos(Y) * Math.cos(P));
+    this.camera.position.copy(TARGET).addScaledVector(dir, 60);
+    // looking straight down: keep the street's far side at the top
+    if (pitch >= 89) this.camera.up.set(Math.sin(Y), 0, -Math.cos(Y)); else this.camera.up.set(0, 1, 0);
+    this.camera.lookAt(TARGET);
+    this.camera.updateMatrixWorld();
+    this.panBounds = null;
   }
 
   // bottomPx / topPx: screen space reserved for HUD so content isn't covered.
@@ -98,6 +109,8 @@ export class Stage {
   setFocus(view, instant = false) {
     this.focus = view;
     this.fling = null;
+    this.pitchGoal = view.pitch ?? this.basePitch;
+    if (instant) this.orient(this.pitchGoal);
     this.goal = this.fit(view);
     if (instant || !this.frame) this.frame = { ...this.goal };
   }
@@ -154,6 +167,13 @@ export class Stage {
     }
     const k = 1 - Math.exp(-dt * 7);
     let moving = false;
+    // tilting between the top view and a close-up: re-fit the target every frame as the camera swings
+    if (this.pitchGoal != null && this.pitch !== this.pitchGoal) {
+      const d = this.pitchGoal - this.pitch;
+      this.orient(Math.abs(d) < 0.05 ? this.pitchGoal : this.pitch + d * k);
+      this.goal = this.fit(this.focus || STREET_VIEW);
+      moving = true;
+    }
     for (const key of ['left', 'right', 'top', 'bottom']) {
       const d = this.goal[key] - this.frame[key];
       if (Math.abs(d) > 1e-4) { this.frame[key] += d * k; moving = true; }
