@@ -890,11 +890,7 @@ export class Game {
   buyProject(p) {
     const s = this.s;
     if (s.done[p.id] || E.isBuilding(s, 'project', p.id) || p.type === 'task') return;
-    if (this.g.cash < p.cost) {
-      audio.deny();
-      this.ui.floater(`Need ${money(p.cost - this.g.cash)} more`, this.anchorScreen(p), 'warn');
-      return;
-    }
+    // builder check first, so nobody pays to unlock something that can't start yet
     if (p.buildSeconds > 0 && E.buildersBusy(s) >= this.builderCount()) {
       audio.deny();
       const extra = this.product('builder');
@@ -903,6 +899,7 @@ export class Game {
       } else this.ui.floater('Your builder is busy', this.anchorScreen(p), 'warn');
       return;
     }
+    if (this.g.cash < p.cost) return this.needMore(p, () => this.buyProject(p), { project: p.id });
     this.spend(p.cost);
     E.log(this.g, 'buy_project', { id: p.id, street: this.streetId, cost: p.cost });
     if (p.hook) E.log(this.g, 'hook_bought', { id: p.id });
@@ -1003,7 +1000,7 @@ export class Game {
   buyUpgrade(shop, u) {
     const s = this.s, key = E.upKey(shop, u.id);
     if (s.owned[key] || E.isBuilding(s, 'upgrade', u.id, shop)) return;
-    if (this.g.cash < u.cost) { audio.deny(); return; }
+    if (this.g.cash < u.cost) return this.needMore(u, () => this.buyUpgrade(shop, u), { upgrade: key });
     this.spend(u.cost);
     E.log(this.g, 'buy_upgrade', { id: key, cost: u.cost });
     audio.tap();
@@ -1209,6 +1206,42 @@ export class Game {
     this.ui.toast('PURCHASE COMPLETE', p.title);
     this.persist();
     return true;
+  }
+
+  // Not enough cash: how far off you are, how to earn the rest, and a paid "Unlock now" that tops up
+  // exactly the difference and buys it. Priced by the shortfall in fixed store tiers.
+  needMore(item, buy, meta = {}) {
+    audio.deny();
+    const short = item.cost - this.g.cash;
+    const m = this.base.monetization.unlockNow;
+    const tier = m?.enabled && purchaseMode(this.base) !== 'off' ? m.tiers.find((t) => t.upTo == null || short <= t.upTo) : null;
+    const p = tier && this.product(tier.product);
+    const pct = Math.max(0, Math.min(100, (this.g.cash / item.cost) * 100));
+    const lawn = this.grass.cutCount() < this.grass.tufts.length;
+    const hint = lawn ? ['coin', 'Mow the lawn'] : this.openShops().length ? ['cup', 'Serve customers'] : ['clock', 'The lawn grows back soon'];
+    E.log(this.g, 'need_more', { short, cost: item.cost, product: p?.id, ...meta });
+    const el = this.ui.openModal(`
+      <div class="fd need">
+        <div class="fd-art">${icon(item.icon || 'star', 'xl')}<span class="need-lock">${icon('lock')}</span></div>
+        <div class="modal-title">${item.title}</div>
+        <div class="need-short">You need <b>${money(short)}</b> more</div>
+        <div class="need-bar"><i style="width:${pct.toFixed(1)}%"></i><span>${money(this.g.cash)} / ${money(item.cost)}</span></div>
+        ${p ? `<button class="btn btn-gold big" data-act="pay">${icon('bolt')}<span>Unlock now · ${p.price}</span></button>` : ''}
+        <button class="btn-link" data-act="earn">${icon(hint[0])} ${hint[1]}</button>
+      </div>`);
+    const close = () => { E.log(this.g, 'need_more_dismiss', { product: p?.id, ...meta }); this.ui.closeModal(); };
+    el.querySelector('[data-act="earn"]').addEventListener('click', close);
+    el.querySelector('.modal-scrim').addEventListener('click', close);
+    el.querySelector('[data-act="pay"]')?.addEventListener('click', async (e) => {
+      e.currentTarget.disabled = true;
+      this.ui.closeModal();
+      // top up whatever is still missing at the moment of purchase, then buy it with the usual flow
+      await this.buyProduct(p.id, () => {
+        const gap = item.cost - this.g.cash;
+        if (gap > 0) this.g.cash += gap; // bought, not earned: kept out of the earnings stats
+        buy();
+      }, { unlock: true, short, ...meta });
+    });
   }
 
   // An offer shown in the middle of play (rush helpers, cash boost): explain it, then buy.

@@ -48,6 +48,8 @@ Every purchase goes through `src/store.js`:
 
 Settings → Playtest stats shows purchases, which items, and the **would-be revenue** a tester generated.
 
+**Not enough cash:** tapping anything you can't afford (a shop, a street project, an upgrade) shows how much more you need, a progress bar, and a tip for earning it (mow the lawn, serve customers). Next to the tip is **Unlock now**: real money pays the missing amount and buys it on the spot. The price depends on how much is missing ($0.99 up to $1,000 short, $1.99 up to $5,000, $4.99 up to $15,000, then $9.99). Tiers live in `monetization.unlockNow`. Set `enabled` to false to keep the screen but drop the paid button.
+
 **Speeding up a timer:** tap the timer (or the tile). **Watch ad · −2 min** is always available. In this prototype a 5-second placeholder stands in for a rewarded video ad. **Finish now · $0.99** appears only once the pinch point has started.
 
 ## Streets and cities

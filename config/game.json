@@ -152,6 +152,16 @@
     "rushHelper": {
       "enabled": true,
       "speedMultiplier": 1.8
+    },
+    "unlockNow": {
+      "_note": "Tapping something you can't afford shows how much more you need, plus 'Unlock now' for real money. It pays the missing amount and buys it. Price tier is picked by how much is missing (upTo, in game dollars).",
+      "enabled": true,
+      "tiers": [
+        { "upTo": 1000, "product": "unlock_s" },
+        { "upTo": 5000, "product": "unlock_m" },
+        { "upTo": 15000, "product": "unlock_l" },
+        { "upTo": null, "product": "unlock_xl" }
+      ]
     }
   },
   "choices": {
@@ -860,6 +870,34 @@
         "title": "Rush helpers",
         "icon": "barista",
         "price": "$0.99",
+        "hidden": true
+      },
+      {
+        "id": "unlock_s",
+        "title": "Unlock now",
+        "icon": "bolt",
+        "price": "$0.99",
+        "hidden": true
+      },
+      {
+        "id": "unlock_m",
+        "title": "Unlock now",
+        "icon": "bolt",
+        "price": "$1.99",
+        "hidden": true
+      },
+      {
+        "id": "unlock_l",
+        "title": "Unlock now",
+        "icon": "bolt",
+        "price": "$4.99",
+        "hidden": true
+      },
+      {
+        "id": "unlock_xl",
+        "title": "Unlock now",
+        "icon": "bolt",
+        "price": "$9.99",
         "hidden": true
       },
       {
