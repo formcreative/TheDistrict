@@ -14,6 +14,7 @@ import { UI, money, clock, icon } from './ui/ui.js';
 import { ICONS } from './ui/icons.js';
 import { purchase, purchaseMode } from './store.js';
 import { worldMapSVG } from './ui/worldmap.js';
+import { logoSVG } from './ui/logo.js';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const WALK_Z = -4.3;
@@ -1300,8 +1301,7 @@ export class Game {
     home.innerHTML = `
       ${worldMapSVG(this.base.cities, info)}
       <div class="home-top">
-        <div class="home-logo"><span class="logo-the">THE</span><span class="logo-main">DISTRICT</span></div>
-        <div class="home-where">${icon('map')}<span>You are in <b>${here.title} · ${this.cfg.street.title}</b></span></div>
+        ${logoSVG()}
       </div>
       <div class="home-bottom">
         <div class="d-streets">${streets}</div>

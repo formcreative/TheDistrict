@@ -23,7 +23,7 @@ There's no build step and nothing to install for the web version. Three.js and t
 
 ## Starting the game: districts
 
-The game opens with a short **loading screen**, then an illustrated **world map**: an island with a road linking each district. Each district has its own artwork emblem with its name on a ribbon above it. **Old Town** (café, clock tower, rowhouses) has a PLAY button. **Neo City** (neon skyline) and **Sunny Ranch** (red barn and windmill) sit under a giant padlock. Tapping a locked one shakes the lock and says what unlocks it. The map art is drawn in code in `src/ui/worldmap.js`. A district unlocks only when every project in the district before it is finished. Inside Old Town, Main Street comes first and Elm Street unlocks from it. The map button (top left) brings this screen back at any time.
+The game opens with a **loading screen** showing the key art (`assets/brand/splash.jpg`), then an illustrated **world map** under the vector logo (`src/ui/logo.js`: script "The" on a wood plank, gold 3D DISTRICT, a "Build Your Town" ribbon, flowers and a lantern): an island with a road linking each district. Each district has its own artwork emblem with its name on a ribbon above it. **Old Town** (café, clock tower, rowhouses) has a PLAY button. **Neo City** (neon skyline) and **Sunny Ranch** (red barn and windmill) sit under a giant padlock. Tapping a locked one shakes the lock and says what unlocks it. The map art is drawn in code in `src/ui/worldmap.js`. A district unlocks only when every project in the district before it is finished. Inside Old Town, Main Street comes first and Elm Street unlocks from it. The map button (top left) brings this screen back at any time.
 
 ## Something to do while you wait
 

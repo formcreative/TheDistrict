@@ -4,6 +4,8 @@
   src: url("vendor/fonts/LilitaOne-Regular.woff2") format("woff2");
   font-display: swap;
 }
+@font-face { font-family: "Pacifico"; src: url("vendor/fonts/Pacifico-Regular.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Alfa Slab One"; src: url("vendor/fonts/AlfaSlabOne-Regular.woff2") format("woff2"); font-display: swap; }
 :root {
   --ink: #23284a;
   --navy: #2f4596;
@@ -471,3 +473,11 @@ button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 .ld-logo, .home-logo { display: flex; flex-direction: column; align-items: center; }
 .logo-the { font-size: .42em; letter-spacing: .32em; margin-right: -.32em; padding: .08em .5em .02em; border-radius: 99px; background: #ff6a4a; -webkit-text-stroke: 0; color: #fff; text-shadow: 0 2px 0 rgba(120,20,10,.45); border: 3px solid #23284a; box-shadow: 0 3px 0 rgba(20,30,70,.3); margin-bottom: .06em; transform: rotate(2deg); }
 .logo-main { letter-spacing: .02em; }
+
+/* ---------- brand: splash art + vector logo ---------- */
+#loader { background: #2f9dff; overflow: hidden; gap: 18px; }
+#loader::before { content: ""; position: absolute; inset: -40px; background: url("assets/brand/splash.jpg") center / cover; filter: blur(18px) saturate(1.15); transform: scale(1.1); }
+#loader > * { position: relative; }
+.ld-art { width: min(100%, 720px); aspect-ratio: 3 / 2; background: url("assets/brand/splash.jpg") center / contain no-repeat; filter: drop-shadow(0 10px 30px rgba(20,30,70,.35)); animation: ld-pop .7s cubic-bezier(.2,1.5,.4,1); }
+.ld-tip { margin-top: -6px; }
+.home-top .logo-svg { width: min(68vw, 270px); height: auto; filter: drop-shadow(0 6px 10px rgba(20,30,70,.3)); animation: cardin .5s cubic-bezier(.2,1.4,.4,1); }

@@ -6,9 +6,9 @@ const FONT = `'Lilita One', 'Arial Rounded MT Bold', sans-serif`;
 
 // Where each district sits on the 400×860 map, in unlock order.
 const SPOTS = [
-  { x: 200, y: 655 },
-  { x: 265, y: 435 },
-  { x: 138, y: 232 },
+  { x: 200, y: 660 },
+  { x: 268, y: 482 },
+  { x: 134, y: 300 },
 ];
 
 const RIBBON = { traditional: ['#ff6a4a', '#c23b2a'], futuristic: ['#8f5cff', '#5a2fc4'], ranch: ['#3fbf4a', '#23863a'] };
@@ -113,7 +113,7 @@ function city(c, i, { unlocked, current, progress, why }) {
   const p = SPOTS[i] || SPOTS[SPOTS.length - 1];
   const art = (EMBLEMS[c.theme] || emblemTraditional)();
   return `
-    <g transform="translate(${p.x} ${p.y})"><g class="map-city ${unlocked ? 'open' : 'locked'} ${current ? 'current' : ''}" data-city="${c.id}" role="button" tabindex="0" aria-label="${c.title}${unlocked ? '' : ' (locked)'}">
+    <g transform="translate(${p.x} ${p.y}) scale(.86)"><g class="map-city ${unlocked ? 'open' : 'locked'} ${current ? 'current' : ''}" data-city="${c.id}" role="button" tabindex="0" aria-label="${c.title}${unlocked ? '' : ' (locked)'}">
       <ellipse cy="74" rx="62" ry="12" fill="#1c3a2a" opacity=".22"/>
       <g class="emblem">
         <g clip-path="url(#emblemClip)" ${unlocked ? '' : 'filter="url(#lockedLook)"'}>${art}</g>

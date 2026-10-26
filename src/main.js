@@ -17,7 +17,8 @@ const progress = (k) => { const bar = loader?.querySelector('i'); if (bar) bar.s
 
 async function boot() {
   progress(0.15);
-  const fontReady = document.fonts?.load ? document.fonts.load('40px "Lilita One"').catch(() => {}) : Promise.resolve();
+  const fonts = ['40px "Lilita One"', '40px "Pacifico"', '24px "Alfa Slab One"'];
+  const fontReady = document.fonts?.load ? Promise.all(fonts.map((f) => document.fonts.load(f))).catch(() => {}) : Promise.resolve();
   const [cfg] = await Promise.all([loadConfig(), Promise.race([fontReady, new Promise((r) => setTimeout(r, 1500))])]);
   progress(0.55);
   await new Promise((r) => setTimeout(r, 30)); // let the bar paint before the 3D street is built
@@ -37,7 +38,7 @@ async function boot() {
   requestAnimationFrame((t) => { last = t; loop(t); });
   root.classList.add('ready');
   // keep the loading screen up long enough to read, then reveal the map
-  const wait = Math.max(0, 1300 - (performance.now() - t0));
+  const wait = Math.max(0, 2200 - (performance.now() - t0));
   setTimeout(() => { progress(1); setTimeout(() => { loader?.classList.add('done'); setTimeout(() => loader?.remove(), 500); }, 350); }, wait);
 }
 

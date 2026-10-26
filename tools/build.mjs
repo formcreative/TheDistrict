@@ -8,7 +8,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const out = join(root, 'dist');
 rmSync(out, { recursive: true, force: true });
 mkdirSync(out);
-for (const f of ['index.html', 'styles.css', 'src', 'config', 'vendor']) {
+for (const f of ['index.html', 'styles.css', 'src', 'config', 'vendor', 'assets']) {
   cpSync(join(root, f), join(out, f), { recursive: true });
 }
 console.log('Built dist/');
