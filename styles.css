@@ -494,3 +494,9 @@ button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 .need .btn-link { display: inline-flex; align-items: center; gap: 6px; }
 .need .btn-link .ico { width: 22px; height: 22px; }
 .need .btn.big .ico { width: 26px; height: 26px; margin-right: 4px; }
+
+/* ---------- one quiet badge per shop ---------- */
+.ring.build { width: 44px; height: 44px; background: conic-gradient(#ffc12b calc(var(--p) * 360deg), rgba(255,255,255,.55) 0); box-shadow: 0 3px 0 rgba(35,40,74,.3); }
+.ring.build .ico { width: 26px; height: 26px; }
+.bubble .count { position: absolute; right: -10px; top: -10px; min-width: 22px; height: 22px; padding: 0 5px; border-radius: 11px; background: var(--coral); color: #fff; font-size: 15px; line-height: 18px; font-style: normal; border: 2px solid #fff; text-align: center; box-shadow: 0 2px 0 rgba(35,40,74,.3); }
+.bubble { position: relative; }

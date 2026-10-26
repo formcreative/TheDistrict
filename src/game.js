@@ -1662,36 +1662,52 @@ export class Game {
     }
 
     const pressure = this.pressureOn();
+    // Street view shows ONE badge per shop (the thing that needs you most). Zooming in shows the full workbench.
+    const detail = this.zoom.level > 0;
     for (const [id, sh] of Object.entries(this.shops)) {
       if (!E.shopOpen(cfg, s, id)) continue;
-      // upgrade button / upgrade timer
       const u = E.nextUpgrade(cfg, s, id);
       const ub = s.builds.find((b) => b.kind === 'upgrade' && b.shop === id);
-      if (ub) {
-        const left = (ub.endsAt - Date.now()) / 1000;
-        ui.anchor(`up:${id}`, `<div class="timer">${icon('clock')}<span>${clock(left)}</span><b class="skip">${icon('play')}</b></div>`,
-          () => sh.b.anchor(), { onTap: () => this.speedUp(ub), cls: 'center-bottom' });
-      } else if (u) {
+      const reg = s.registers[id] || 0;
+      const cap = E.registerCap(cfg, s, id);
+      const auto = E.autoServe(cfg, s, id);
+      const waiting = sh.customers.filter((c) => c.state === 'wait' || (c.state === 'approach' && c.slot === 0));
+      const patience = (c) => (pressure ? Math.max(0, 1 - c.wait / this.base.pressure.patienceSeconds) : 1);
+      const regAnchor = () => V(sh.b.style.x + 0.62, 1.4, FACADE_Z + 0.5);
+      const register = (at) => ui.anchor(`reg:${id}`, `<div class="register ${reg >= cap ? 'full' : ''} ${reg >= 1 ? 'has' : ''}">${icon('register')}<span>${reg >= cap ? 'FULL' : money(reg)}</span></div>`,
+        at, { onTap: () => this.collectRegister(id), cls: 'center-bottom', vars: { '--f': Math.min(1, reg / cap).toFixed(3) } });
+      const ring = (b) => ui.anchor(`ring:${id}`, `<div class="ring build">${icon('clock')}</div>`,
+        () => sh.b.anchor(), { onTap: () => this.speedUp(b), cls: 'center-bottom', vars: { '--p': Math.min(1, 1 - (b.endsAt - Date.now()) / 1000 / b.total).toFixed(3) } });
+
+      if (!detail) {
+        if (!auto && waiting.length) {
+          const c = waiting[0], pat = patience(c);
+          const ready = sh.ready && sh.readyMesh.visible;
+          ui.anchor(`order:${id}`, `<div class="bubble ${ready ? 'ready' : ''} ${pressure && pat < 0.35 ? 'urgent' : ''}">${icon(sh.sc.icon)}${waiting.length > 1 ? `<i class="count">${waiting.length}</i>` : ''}</div>`,
+            () => sh.b.anchor(), { onTap: () => this.shopTap(id), cls: 'center-bottom', vars: { '--pat': pat.toFixed(3) } });
+        } else if (reg >= cap) register(() => sh.b.anchor());
+        else if (ub) ring(ub);
+        else if (u && g.cash >= u.cost) {
+          ui.anchor(`up:${id}`, `<div class="upbtn ready">${icon('up')}<i class="dot"></i></div>`,
+            () => sh.b.anchor(), { onTap: () => this.openShopSheet(id), cls: 'center-bottom' });
+        } else if (reg >= Math.max(5, cap * 0.25)) register(() => sh.b.anchor());
+        continue;
+      }
+
+      // zoomed in: everything, each in its own spot
+      if (ub) ring(ub);
+      else if (u) {
         const afford = g.cash >= u.cost;
         ui.anchor(`up:${id}`, `<div class="upbtn ${afford ? 'ready' : ''}">${icon('up')}${afford ? '<i class="dot"></i>' : ''}</div>`,
           () => sh.b.anchor(), { onTap: () => this.openShopSheet(id), cls: 'center-bottom' });
       }
-      // register: staff sales wait here until the player collects them
-      const reg = s.registers[id] || 0;
-      if (E.autoServe(cfg, s, id) || reg >= 1) {
-        const cap = E.registerCap(cfg, s, id);
-        const full = reg >= cap;
-        ui.anchor(`reg:${id}`, `<div class="register ${full ? 'full' : ''} ${reg >= 1 ? 'has' : ''}">${icon('register')}<span>${full ? 'FULL' : money(reg)}</span></div>`,
-          () => V(sh.b.style.x + 0.62, 1.4, FACADE_Z + 0.5), { onTap: () => this.collectRegister(id), cls: 'center-bottom', vars: { '--f': Math.min(1, reg / cap).toFixed(3) } });
-      }
-      // order bubbles, with a patience ring once the street is busy
+      if (auto || reg >= 1) register(regAnchor);
       for (const c of sh.customers) {
-        if (c.state === 'wait' || (c.state === 'approach' && c.slot === 0)) {
+        if (waiting.includes(c)) {
           const ready = c.slot === 0 && sh.ready && sh.readyMesh.visible;
-          const pat = pressure ? Math.max(0, 1 - c.wait / this.base.pressure.patienceSeconds) : 1;
-          const urgent = pressure && pat < 0.35;
-          ui.anchor(`cust:${c.p.root.id}`, `<div class="bubble ${ready ? 'ready' : ''} ${urgent ? 'urgent' : ''}">${icon(sh.sc.icon)}</div>`,
-            () => c.p.headWorld().add(V(0, 0.42, 0)), { onTap: () => this.shopTap(id), cls: 'center-bottom', vars: { '--pat': pressure ? pat.toFixed(3) : 1 } });
+          const pat = patience(c);
+          ui.anchor(`cust:${c.p.root.id}`, `<div class="bubble ${ready ? 'ready' : ''} ${pressure && pat < 0.35 ? 'urgent' : ''}">${icon(sh.sc.icon)}</div>`,
+            () => c.p.headWorld().add(V(0, 0.42, 0)), { onTap: () => this.shopTap(id), cls: 'center-bottom', vars: { '--pat': pat.toFixed(3) } });
         }
         if (c.state === 'leave' && c.mood && c.moodT < 1.2) {
           ui.anchor(`mood:${c.p.root.id}`, `<div class="${c.mood === 'angry' ? 'angry' : 'heart'}"></div>`, () => c.p.headWorld().add(V(0, 0.4 + c.moodT * 0.6, 0)), { cls: 'center-bottom' });
@@ -1722,9 +1738,9 @@ export class Game {
       if (b.kind !== 'project') continue;
       const proj = cfg.projects.find((q) => q.id === b.id);
       if (!proj) continue;
-      const left = (b.endsAt - Date.now()) / 1000;
-      ui.anchor(`build:${b.id}`, `<div class="timer">${icon('clock')}<span>${clock(left)}</span><b class="skip">${icon('play')}</b></div>`,
-        () => this.projectSpot(proj), { onTap: () => this.speedUp(b), cls: 'center-bottom' });
+      // a quiet progress ring on the site; the exact time and the skip live on the bottom card
+      ui.anchor(`build:${b.id}`, `<div class="ring build">${icon('clock')}</div>`,
+        () => this.projectSpot(proj), { onTap: () => this.speedUp(b), cls: 'center-bottom', vars: { '--p': Math.min(1, 1 - (b.endsAt - Date.now()) / 1000 / b.total).toFixed(3) } });
     }
     ui.placeAnchors(this.stage);
 
