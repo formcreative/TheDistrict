@@ -22,7 +22,11 @@ async function boot() {
   const [cfg] = await Promise.all([loadConfig(), Promise.race([fontReady, new Promise((r) => setTimeout(r, 1500))])]);
   progress(0.55);
   await new Promise((r) => setTimeout(r, 30)); // let the bar paint before the 3D street is built
-  const game = new Game(cfg, root, canvas, { debug });
+  // ?pitch=90&yaw=0 tries a camera angle without editing the config
+  const camera = {};
+  if (params.has('pitch')) camera.pitch = Number(params.get('pitch'));
+  if (params.has('yaw')) camera.yaw = Number(params.get('yaw'));
+  const game = new Game(cfg, root, canvas, { debug, camera });
   progress(0.9);
   window.__game = game;
   if (debug) mountDebug(game);

@@ -134,13 +134,18 @@ export class Building {
     // sign board
     this.signMat = new THREE.MeshLambertMaterial({ map: signTexture(s.sign, { bg: s.signBg, fg: s.signFg, border: s.signFg }), emissive: '#ffffff', emissiveIntensity: 0 });
     this.signMat.emissiveMap = this.signMat.map;
-    this.signBoard = add(B, rbox(W * 0.78, 0.4, 0.1, 0.04), this.mTrim, { y: 1.68, z: fz + 0.06 });
+    // hinged at its top edge and tipped up toward the high camera, so the name stays readable from above
+    const hinge = new THREE.Group();
+    hinge.position.set(0, 2.08, fz + 0.06);
+    hinge.rotation.x = -0.6;
+    B.add(hinge);
+    this.signBoard = add(hinge, rbox(W * 0.78, 0.4, 0.1, 0.04), this.mTrim, { y: -0.4 });
     this.signFace = new THREE.Mesh(new THREE.PlaneGeometry(W * 0.74, 0.34), this.signMat);
-    this.signFace.position.set(0, 1.88, fz + 0.115);
-    B.add(this.signFace);
+    this.signFace.position.set(0, -0.2, 0.055);
+    hinge.add(this.signFace);
     this.signDead = new THREE.Mesh(new THREE.PlaneGeometry(W * 0.74, 0.34), mat('#6f685f'));
     this.signDead.position.copy(this.signFace.position);
-    B.add(this.signDead);
+    hinge.add(this.signDead);
 
     // planters by the door (restored only)
     this.extras = group(B);

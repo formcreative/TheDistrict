@@ -89,7 +89,7 @@ With the current config and **no** timer skips, the bakery unlocks at about 22 m
 | `config/game.json` | Economy and content data |
 | `src/economy.js` | Pure pricing rules, shared by the game and the simulator |
 | `src/game.js` | Game flow: input, zoom, shop service, projects, upgrades, builds, rush hours, fake doors, stats |
-| `src/scene/stage.js` | Renderer, elevated three-quarter camera that fits any phone, lighting |
+| `src/scene/stage.js` | Renderer, top-down camera (angle set in `config.camera`) that fits any phone, lighting |
 | `src/scene/street.js` | Road, sidewalks and the four paving styles, lamps, park beds, trash |
 | `src/scene/buildings.js` | Shops with neglected and restored looks, the restore animation, the hook beam |
 | `src/scene/grass.js` | Instanced grass, cutting, regrowth, mowed-lawn patches |

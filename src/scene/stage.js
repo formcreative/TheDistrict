@@ -8,18 +8,19 @@ export function shopView(x, level) {
   const half = level >= 2 ? 1.25 : 1.85;
   const box = level >= 2
     ? new THREE.Box3(new THREE.Vector3(x - half, 0, -5.8), new THREE.Vector3(x + half, 1.9, -3.5))
-    : new THREE.Box3(new THREE.Vector3(x - half, 0, -7.2), new THREE.Vector3(x + half, 3.0, -3.3));
+    : new THREE.Box3(new THREE.Vector3(x - half, 0, -6.4), new THREE.Vector3(x + half, 2.3, -2.9));
   return { box, center: true };
 }
 export { STREET_VIEW };
 // How far a zoomed-in player can drag: the whole street plus the boutique lot and the park fence.
 const PAN_BOX = new THREE.Box3(new THREE.Vector3(-5.2, 0, -8.6), new THREE.Vector3(6.8, 3.2, 7.6));
-const PITCH = THREE.MathUtils.degToRad(46);
-const YAW = THREE.MathUtils.degToRad(-6);
 const TARGET = new THREE.Vector3(0, 0, -1);
 
 export class Stage {
-  constructor(canvas) {
+  // pitch: 90 = straight down, lower = more of the shop fronts. yaw: 0 = square to the street.
+  constructor(canvas, { pitch = 68, yaw = 0 } = {}) {
+    const PITCH = THREE.MathUtils.degToRad(Math.min(90, pitch));
+    const YAW = THREE.MathUtils.degToRad(yaw);
     this.canvas = canvas;
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -32,6 +33,7 @@ export class Stage {
     this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 200);
     const dir = new THREE.Vector3(Math.sin(YAW) * Math.cos(PITCH), Math.sin(PITCH), Math.cos(YAW) * Math.cos(PITCH));
     this.camera.position.copy(TARGET).addScaledVector(dir, 60);
+    if (pitch >= 89) this.camera.up.set(Math.sin(YAW), 0, -Math.cos(YAW)); // looking straight down: keep the street's far side at the top
     this.camera.lookAt(TARGET);
 
     const hemi = new THREE.HemisphereLight(0xcfeaff, 0xc9b27a, 1.7);

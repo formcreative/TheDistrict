@@ -1,6 +1,11 @@
 {
   "_readme": "All economy and content numbers live here. Edit and reload; no rebuild needed. Money is in whole dollars, times in seconds.",
   "startCash": 0,
+  "camera": {
+    "_note": "pitch: 90 = straight down; lower shows more of the shop fronts. yaw: 0 = square to the street.",
+    "pitch": 68,
+    "yaw": 0
+  },
   "grass": {
     "_note": "Each overgrown tuft takes `passes` swipes. Once you mow, the lawn grows back all at once after `regrowSeconds` (timer shown over the lawn); regrown lawn pays `regrownValue` per tuft.",
     "coinValue": 1,

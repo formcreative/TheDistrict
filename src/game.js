@@ -43,7 +43,7 @@ export class Game {
     this.base = cfg;
     this.opts = opts;
     this.root = root;
-    this.stage = new Stage(canvas);
+    this.stage = new Stage(canvas, { ...cfg.camera, ...opts.camera });
     this.keep = new Set(this.stage.scene.children); // lights survive a street change
     this.ui = new UI(root);
 
